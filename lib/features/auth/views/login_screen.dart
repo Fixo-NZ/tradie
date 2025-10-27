@@ -124,12 +124,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           const SizedBox(height: 10),
                           TextFormField(
                             controller: _emailController,
-                            // --- (CHANGE 2) Changed keyboard type ---
                             keyboardType: TextInputType.text,
                             decoration: InputDecoration(
-                              // --- (CHANGE 3) Updated labels ---
                               labelText: "Email/Number",
-                              hintText: "example@email.com / 09123456789",
+                              hintText: "example@email.com/09123456789",
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
