@@ -78,7 +78,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       selectedDay.year,
                       selectedDay.month,
                       selectedDay.day,
-                      
                     );
                     _focusedDay = focusedDay;
                   });
@@ -115,27 +114,38 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 ),
                 daysOfWeekStyle: const DaysOfWeekStyle(
                   weekdayStyle: TextStyle(color: Color(0xFFB3B3B3)),
-                  weekendStyle: TextStyle(
-                    color: Color(0xFFFF0000),
-                    fontWeight: FontWeight.w600,
-                  ),
+                  weekendStyle: TextStyle(color: Color(0xFFB3B3B3)),
                 ),
                 calendarStyle: const CalendarStyle(
                   outsideDaysVisible: false,
                   markerDecoration: BoxDecoration(
-                    color: Color(0xFF17A1FA),
+                    color: Color.fromARGB(255, 252, 189, 52),
                     shape: BoxShape.circle,
                   ),
                 ),
                 calendarBuilders: CalendarBuilders(
+                  dowBuilder: (context, day) {
+                    if (day.weekday == DateTime.sunday) {
+                      return Center(
+                        child: Text(
+                          'Sun',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }
+                    return null; // Use default style for other days
+                  },
                   todayBuilder: (context, day, focused) {
                     return Center(
                       child: Container(
                         width: 35,
                         height: 35,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF3066BE),
-                          borderRadius: BorderRadius.circular(10),
+                          color: const Color.fromARGB(124, 48, 102, 190),
+                          shape: BoxShape.circle,
                         ),
                         alignment: Alignment.center,
                         child: Text(
@@ -149,18 +159,16 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                     );
                   },
                   defaultBuilder: (context, day, focusedDay) {
-                    final isWeekend =
-                        day.weekday == DateTime.saturday ||
-                        day.weekday == DateTime.sunday;
+                    final isSunday = day.weekday == DateTime.sunday;
 
                     return Center(
                       child: Text(
                         '${day.day}',
                         style: TextStyle(
-                          color: isWeekend
+                          color: isSunday
                               ? const Color(0xFFFF0000)
                               : const Color(0xFFB3B3B3),
-                          fontWeight: isWeekend
+                          fontWeight: isSunday
                               ? FontWeight.w600
                               : FontWeight.normal,
                         ),
@@ -193,17 +201,20 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                           children: [
                             Row(
                               children: [
-                                Text(DateFormat('hh:mm a').format(event.startDate)),
+                                Text(
+                                  DateFormat('hh:mm a').format(event.startDate),
+                                  style: TextStyle(color: Color(0xFF757575)),
+                                ),
                                 SizedBox(width: 10),
                                 Expanded(
                                   child: Container(
                                     height: 1,
-                                    color: Colors.grey,
+                                    color: Color.fromARGB(255, 161, 161, 161),
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(height: 10,),
+                            SizedBox(height: 10),
                             Row(
                               children: [
                                 Container(
@@ -214,44 +225,56 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                                     shape: BoxShape.circle,
                                   ),
                                 ),
-                                SizedBox(width: 20,),
+                                SizedBox(width: 20),
                                 Expanded(
                                   child: Card(
-                                  color: color,
-                                  margin: const EdgeInsets.symmetric(vertical: 6),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: ListTile(
-                                    title: Text(event.title),
-                                    subtitle: Text(event.description),
-                                    trailing: event.rescheduledAt != null
-                                      ? Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue[800],
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: const Text(
-                                            'Rescheduled',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        )
-                                      : null,
+                                    color: color,
+                                    margin: const EdgeInsets.symmetric(
+                                      vertical: 6,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: ListTile(
+                                      title: Text(
+                                        event.title,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      subtitle: Text(event.description),
+                                      trailing: event.rescheduledAt != null
+                                          ? Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 12,
+                                                    vertical: 6,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue[800],
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: const Text(
+                                                'Rescheduled',
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            )
+                                          : null,
                                       onTap: () {
-                                        context.push('/job-details', extra: event);
+                                        context.push(
+                                          '/job-details',
+                                          extra: event,
+                                        );
                                       },
+                                    ),
                                   ),
-                                )
-                                )
+                                ),
                               ],
-                            )
+                            ),
                           ],
                         );
                       },

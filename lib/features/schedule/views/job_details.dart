@@ -1,11 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:tradie/features/schedule/viewmodels/schedule_viewmodel.dart';
+import 'package:tradie/features/schedule/widgets/edit_event_sheet.dart';
+import 'package:tradie/features/schedule/widgets/show_cancel_confirmation.dart';
 
-class JobDetailsScreen extends StatelessWidget {
-  const JobDetailsScreen({super.key});
+class JobDetailsScreen extends ConsumerWidget {
+  final int eventId; // pass only the ID now
+
+  const JobDetailsScreen({super.key, required this.eventId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(scheduleViewModelProvider);
+
+    // Find the event in the provider's list
+    final event = state.schedules.firstWhere(
+      (e) => e.id == eventId,
+      // orElse: () => null,
+    );
+
+    final duration = event.endDate.difference(event.startDate);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    final durationText = '${hours}h ${minutes}m';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -23,7 +43,7 @@ class JobDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🧱 Job Title + Location
+            // Job Info Card
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -34,29 +54,27 @@ class JobDetailsScreen extends StatelessWidget {
                     color: Colors.grey.withOpacity(0.2),
                     blurRadius: 5,
                     offset: const Offset(0, 2),
-                  )
+                  ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
-                    'Roof Cleaning',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    event.title,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.location_on_outlined,
+                      const Icon(Icons.location_on_outlined,
                           color: Colors.grey, size: 18),
-                      SizedBox(width: 4),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          '5 Moeller Street, Mount Victoria, Wellington 6011, New Zealand',
-                          style: TextStyle(color: Colors.black54),
+                          event.homeowner.address,
+                          style: const TextStyle(color: Colors.black54),
                         ),
                       ),
                     ],
@@ -67,88 +85,95 @@ class JobDetailsScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // 📅 Schedule Section
             _SectionCard(
               title: 'Schedule',
               icon: Icons.schedule,
               content: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  _ScheduleItem(label: 'Date', value: 'September 9, 2025'),
-                  _ScheduleItem(label: 'Time', value: '9:00 AM'),
-                  _ScheduleItem(label: 'Duration', value: '2 hours'),
+                children: [
+                  _ScheduleItem(
+                    label: 'Date',
+                    value: DateFormat('MMMM dd, yyyy').format(event.startDate),
+                  ),
+                  _ScheduleItem(
+                    label: 'Time',
+                    value:
+                        '${DateFormat('hh:mm a').format(event.startDate)} - ${DateFormat('hh:mm a').format(event.endDate)}',
+                  ),
+                  _ScheduleItem(label: 'Duration', value: durationText),
                 ],
               ),
             ),
 
             const SizedBox(height: 16),
 
-            // 📝 Notes Section
             _SectionCard(
               title: 'Notes',
               icon: Icons.notes_outlined,
-              content: const Text(
-                'The task involves cleaning roofs by removing dirt, moss, algae and debris using appropriate tools such as pressure washers, brushes, scrapers, and cleaning solutions. While working carefully, inspect the roof for any damaged shingles, leaks, or other issues. After completing the cleaning, ensure all debris and equipment are thoroughly removed from the site.',
-                style: TextStyle(color: Colors.black87, height: 1.4),
+              content: Text(
+                event.description,
+                style: const TextStyle(color: Colors.black87, height: 1.4),
               ),
             ),
 
             const SizedBox(height: 16),
 
-            // 👤 Customer Info
             _SectionCard(
               title: 'Customer Information',
               icon: Icons.person_outline,
               content: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: Color(0xFF090C9B),
+                        backgroundColor: const Color(0xFF090C9B),
                         child: Text(
-                          'JD',
-                          style: TextStyle(color: Colors.white),
+                          '${event.homeowner.firstName[0]}${event.homeowner.lastName[0]}',
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'John Doe',
-                            style: TextStyle(
+                            '${event.homeowner.firstName} ${event.homeowner.middleName} ${event.homeowner.lastName}',
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
                           Text(
-                            '+64 321 5432167',
-                            style: TextStyle(color: Colors.black54),
+                            event.homeowner.address,
+                            style: const TextStyle(color: Colors.black54),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Icon(Icons.email_outlined, color: Colors.grey, size: 18),
-                      SizedBox(width: 6),
-                      Text('johndoe@gmail.com'),
+                      const Icon(Icons.email_outlined, color: Colors.grey, size: 18),
+                      const SizedBox(width: 6),
+                      Text(event.homeowner.email),
                     ],
                   ),
-                  SizedBox(height: 6),
+                  const SizedBox(height: 6),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.location_on_outlined,
-                          color: Colors.grey, size: 18),
-                      SizedBox(width: 6),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        color: Colors.grey,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          '5 Moeller Street, Mount Victoria, Wellington 6011, New Zealand',
-                          style: TextStyle(color: Colors.black87),
+                          event.homeowner.address,
+                          style: const TextStyle(color: Colors.black87),
                         ),
                       ),
                     ],
@@ -159,16 +184,28 @@ class JobDetailsScreen extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // 🔘 Buttons
-            Row(
+            Column(
               children: [
-                Expanded(
+                SizedBox(
+                  width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.white,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(25),
+                          ),
+                        ),
+                        builder: (context) => EditEventSheet(event: event),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF090C9B),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(100),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
@@ -181,14 +218,17 @@ class JobDetailsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showCancelConfirmation(context, ref, event.id);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(100),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
@@ -210,7 +250,6 @@ class JobDetailsScreen extends StatelessWidget {
   }
 }
 
-/// 🔹 Reusable Section Card
 class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -255,15 +294,11 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-/// 🔹 Reusable Row for Schedule Info
 class _ScheduleItem extends StatelessWidget {
   final String label;
   final String value;
 
-  const _ScheduleItem({
-    required this.label,
-    required this.value,
-  });
+  const _ScheduleItem({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
