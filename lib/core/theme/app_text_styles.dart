@@ -41,7 +41,8 @@ class AppTextStyles {
 
   static const TextStyle headlineSmall = TextStyle(
     fontSize: 24,
-    fontWeight: FontWeight.w400,
+    // Make small headlines bolder to match the mock (section titles)
+    fontWeight: FontWeight.w600,
     letterSpacing: 0,
     color: AppColors.onBackground,
   );
@@ -157,7 +158,8 @@ class AppTextStyles {
   );
 
   static const TextStyle inputLabel = TextStyle(
-    fontSize: 16,
+    fontSize: 14,
+    // lighter label weight and smaller size for the subtle placeholder labels
     fontWeight: FontWeight.w400,
     letterSpacing: 0.15,
     color: AppColors.onSurfaceVariant,

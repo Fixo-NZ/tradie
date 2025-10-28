@@ -42,7 +42,10 @@ class AppColors {
   static const Color grey900 = Color(0xFF212121);
 
   // Tradie-specific colors
-  static const Color tradieBlue = Color(0xFF1565C0);
+  // Primary brand blue used for headings and call-to-action
+  static const Color tradieBlue = Color(0xFF0B1AA8); // deep royal blue to match mock
+  // Accent used for focused inputs (slightly purple in the design)
+  static const Color focusAccent = Color(0xFF4B3EFF);
   static const Color tradieOrange = Color(0xFFFF6F00);
   static const Color tradieGreen = Color(0xFF2E7D32);
 
