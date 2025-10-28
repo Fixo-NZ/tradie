@@ -37,6 +37,7 @@ dependencies:
   
   # State management
   flutter_riverpod: ^2.4.9
+  image_picker: ^0.8.7+5
   
   # HTTP client
   dio: ^5.4.0

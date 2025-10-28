@@ -4,6 +4,7 @@ class ApiConstants {
   static const String registerEndpoint = '/tradie/register';
   static const String logoutEndpoint = '/tradie/logout';
   static const String refreshTokenEndpoint = '/tradie/refresh';
+  static const String uploadAvatarEndpoint = '/tradie/upload-avatar';
 
   // Headers
   static const String contentType = 'application/json';
