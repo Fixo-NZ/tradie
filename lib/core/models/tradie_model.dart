@@ -3,6 +3,18 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'tradie_model.g.dart';
 
+// --- NEW HELPER FUNCTION ---
+// This function safely converts a String or num into a double
+double? _doubleFromString(dynamic value) {
+  if (value is String) {
+    return double.tryParse(value);
+  } else if (value is num) {
+    return value.toDouble();
+  }
+  return null;
+}
+// --- END OF HELPER FUNCTION ---
+
 @JsonSerializable()
 class TradieModel {
   final int? id;
@@ -25,8 +37,12 @@ class TradieModel {
   final String? licenseNumber;
   @JsonKey(name: 'years_experience')
   final int? yearsExperience;
-  @JsonKey(name: 'hourly_rate')
+
+  // --- THIS IS THE FIX ---
+  @JsonKey(name: 'hourly_rate', fromJson: _doubleFromString)
   final double? hourlyRate;
+  // --- END OF FIX ---
+
   @JsonKey(name: 'availability_status')
   final String? availabilityStatus;
   @JsonKey(name: 'service_radius')

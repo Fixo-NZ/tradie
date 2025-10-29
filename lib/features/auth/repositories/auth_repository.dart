@@ -1,3 +1,4 @@
+// lib/features/auth/repositories/auth_repository.dart
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../models/auth_models.dart';
@@ -15,6 +16,10 @@ class AuthRepository {
         data: request.toJson(),
       );
 
+      if (kDebugMode) {
+        print('SUCCESSFUL LOGIN RESPONSE: ${response.data}');
+      }
+
       final authResponse = AuthResponse.fromJson(response.data);
       await _dioClient.setToken(authResponse.accessToken);
 
@@ -22,6 +27,10 @@ class AuthRepository {
     } on DioException catch (e) {
       return _handleDioError(e);
     } catch (e) {
+      if (kDebugMode) {
+        print('JSON PARSING CRASH: $e');
+        print('STACK TRACE: ${e.toString()}');
+      }
       return Failure(message: 'An unexpected error occurred: $e');
     }
   }

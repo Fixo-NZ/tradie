@@ -20,7 +20,7 @@ TradieModel _$TradieModelFromJson(Map<String, dynamic> json) => TradieModel(
   businessName: json['business_name'] as String?,
   licenseNumber: json['license_number'] as String?,
   yearsExperience: (json['years_experience'] as num?)?.toInt(),
-  hourlyRate: (json['hourly_rate'] as num?)?.toDouble(),
+  hourlyRate: _doubleFromString(json['hourly_rate']),
   availabilityStatus: json['availability_status'] as String?,
   serviceRadius: (json['service_radius'] as num?)?.toInt(),
   isVerified: json['is_verified'] as bool?,
