@@ -1,7 +1,9 @@
 // lib/constants/api_constants.dart
 class ApiConstants {
   // ✅ Use your local IP for emulator/device testing
-  static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
+  // static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
+  static const String baseUrl = "http://10.0.2.2:8000/api/tradie";
+  //static const String baseUrl = 'http://127.0.0.1:8000/api';
 
   // Auth Endpoints
   static const String loginEndpoint = '/login';
@@ -12,6 +14,9 @@ class ApiConstants {
   // Profile Setup
   static const String basicInfoEndpoint = '/profile-setup/basic-info';
   static const String skillsEndpoint = '/profile-setup/skills';
+
+  // endpoint expects a leading slash and will be appended to baseUrl
+  static const String uploadAvatarEndpoint = '/tradie/upload-avatar';
 
   // Headers
   static const String contentType = 'application/json';

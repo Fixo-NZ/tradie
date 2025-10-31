@@ -4,10 +4,12 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
+  // static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
+  static const String baseUrl = "http://10.0.2.2:8000/api/tradie";
+
 
   // ✅ Hardcoded token to bypass login
-  static const String token = "7|XULoPEKfwdg3MrihDS7AcKfx55OEOXezA5KSyXNNc7d32ead";
+  static const String token = "4|801qugh9yA2pZ1IkTok0PCYCn11fE6DkH0yqIirB7833d121";
 
   /// Generic POST (for JSON body)
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
@@ -23,35 +25,35 @@ class ApiService {
 
   /// Generic Multipart POST (for images/files)
   Future<Map<String, dynamic>> multipartPost({
-  required String endpoint,
-  required Map<String, String> fields,
-  File? file,
-  String? fileFieldName,
-}) async {
-  final uri = Uri.parse('$baseUrl$endpoint');
-  final request = http.MultipartRequest('POST', uri);
+    required String endpoint,
+    required Map<String, String> fields,
+    File? file,
+    String? fileFieldName,
+  }) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final request = http.MultipartRequest('POST', uri);
 
-  request.headers.addAll({
-    'Authorization': 'Bearer $token',
-    'Accept': 'application/json',
-  });
+    request.headers.addAll({
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+    });
 
-  request.fields.addAll(fields);
+    request.fields.addAll(fields);
 
-  if (file != null && fileFieldName != null) {
-    request.files.add(await http.MultipartFile.fromPath(fileFieldName, file.path));
+    if (file != null && fileFieldName != null) {
+      request.files.add(await http.MultipartFile.fromPath(fileFieldName, file.path));
+    }
+
+    final streamedResponse = await request.send();
+    final responseBody = await streamedResponse.stream.bytesToString();
+
+    print("🔹 Laravel Response: $responseBody");
+
+    return {
+      'statusCode': streamedResponse.statusCode,
+      'body': responseBody,
+    };
   }
-
-  final streamedResponse = await request.send();
-  final responseBody = await streamedResponse.stream.bytesToString();
-
-  print("🔹 Laravel Response: $responseBody");
-
-  return {
-    'statusCode': streamedResponse.statusCode,
-    'body': responseBody,
-  };
-}
 
 
   Map<String, String> _headers() => {
