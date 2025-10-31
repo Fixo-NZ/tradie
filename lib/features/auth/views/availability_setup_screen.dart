@@ -11,10 +11,52 @@ import '../viewmodels/availability_setup_viewmodel.dart';
 class AvailabilitySetupScreen extends ConsumerWidget {
   const AvailabilitySetupScreen({super.key});
 
+  Future<void> _selectTime(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool isStart,
+  }) async {
+    final viewModel = ref.read(availabilitySetupViewModelProvider.notifier);
+    final initialTime = TimeOfDay.now();
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            dialogTheme: const DialogThemeData(
+              backgroundColor: Colors.white, // ✅ fixed type
+            ),
+            colorScheme: const ColorScheme.light(
+              primary: Color.fromRGBO(9, 12, 155, 1.0),
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    // ✅ guard BuildContext after async
+    if (!context.mounted) return;
+
+    if (pickedTime != null) {
+      final formattedTime = pickedTime.format(context);
+      if (isStart) {
+        viewModel.setFromTime(formattedTime);
+      } else {
+        viewModel.setToTime(formattedTime);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(availabilitySetupViewModelProvider.notifier);
     final state = ref.watch(availabilitySetupViewModelProvider);
+
+    final labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -29,10 +71,27 @@ class AvailabilitySetupScreen extends ConsumerWidget {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ContinueFloatingButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const PortfolioSetupScreen()),
-          );
+        onPressed: () async {
+          final success = await viewModel.saveAvailability();
+
+          if (!context.mounted) return;
+
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Availability saved successfully!")),
+            );
+            if (context.mounted) {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PortfolioSetupScreen()),
+              );
+            }
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Failed to save availability.")),
+              );
+            }
+          }
         },
       ),
       body: SafeArea(
@@ -48,7 +107,7 @@ class AvailabilitySetupScreen extends ConsumerWidget {
                 value: 3 / 6,
                 minHeight: 4,
                 color: const Color.fromRGBO(9, 12, 155, 1.0),
-                backgroundColor: const Color(0xFFDDE9FF)
+                backgroundColor: const Color(0xFFDDE9FF),
               ),
               const SizedBox(height: AppDimensions.spacing16),
               Text(
@@ -64,34 +123,41 @@ class AvailabilitySetupScreen extends ConsumerWidget {
                 style: AppTextStyles.bodyLarge,
               ),
               const SizedBox(height: AppDimensions.spacing8),
-              // day chips (custom so no check icon is shown)
-              // one-line, scrollable row of day boxes
+
+              // Days of the week
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: List.generate(7, (index) {
-                    final labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                    final selected = state.days[index];
+                    final day = labels[index];
+                    final selected = state.days.contains(day);
+
                     return Padding(
                       padding: const EdgeInsets.only(right: 6.0),
                       child: GestureDetector(
-                        onTap: () => viewModel.toggleDay(index),
+                        onTap: () => viewModel.toggleDay(day),
                         child: Container(
                           width: 49.5,
                           height: 35,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: selected ? const Color.fromRGBO(9, 12, 155, 1.0) : Colors.white,
+                            color: selected
+                                ? const Color.fromRGBO(9, 12, 155, 1.0)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: selected ? const Color.fromRGBO(9, 12, 155, 1.0) : AppColors.surfaceVariant,
+                              color: selected
+                                  ? const Color.fromRGBO(9, 12, 155, 1.0)
+                                  : AppColors.surfaceVariant,
                             ),
                           ),
                           child: Text(
                             labels[index],
                             style: selected
-                                ? AppTextStyles.bodyLarge.copyWith(color: Colors.white)
-                                : AppTextStyles.bodyLarge.copyWith(color: Colors.black87),
+                                ? AppTextStyles.bodyLarge
+                                    .copyWith(color: Colors.white)
+                                : AppTextStyles.bodyLarge
+                                    .copyWith(color: Colors.black87),
                           ),
                         ),
                       ),
@@ -99,55 +165,71 @@ class AvailabilitySetupScreen extends ConsumerWidget {
                   }),
                 ),
               ),
+
               const SizedBox(height: AppDimensions.spacing16),
               Text('Working Hours', style: AppTextStyles.bodyLarge),
               const SizedBox(height: AppDimensions.spacing8),
-              // Dropdowns for From / To
+
+              // From / To
               Row(
                 children: [
                   Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: state.fromTime,
-                      items: ['08:00 AM', '09:00 AM', '10:00 AM'].map((time) {
-                        return DropdownMenuItem(
-                          value: time,
-                          child: Text(time),
-                        );
-                      }).toList(),
-                      onChanged: viewModel.updateFromTime,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    child: InkWell(
+                      onTap: () => _selectTime(context, ref, isStart: true),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          (state.fromTime ?? '').isEmpty
+                              ? 'Start Time'
+                              : state.fromTime!,
+                          style: const TextStyle(color: Colors.black87),
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Text('To'),
+                  const Text('To'),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: state.toTime,
-                      items: ['05:00 PM', '06:00 PM', '07:00 PM'].map((time) {
-                        return DropdownMenuItem(
-                          value: time,
-                          child: Text(time),
-                        );
-                      }).toList(),
-                      onChanged: viewModel.updateToTime,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    child: InkWell(
+                      onTap: () => _selectTime(context, ref, isStart: false),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 12,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          (state.toTime ?? '').isEmpty
+                              ? 'End Time'
+                              : state.toTime!,
+                          style: const TextStyle(color: Colors.black87),
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
+
               const SizedBox(height: AppDimensions.spacing16),
-              // Emergency availability card with checkbox (per mock)
+
+              // Emergency Availability
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
@@ -163,18 +245,21 @@ class AvailabilitySetupScreen extends ConsumerWidget {
                       value: state.emergencyAvailability,
                       activeColor: const Color.fromRGBO(9, 12, 155, 1.0),
                       checkColor: Colors.white,
-                      onChanged: (_) => viewModel.toggleEmergencyAvailability(),
+                      onChanged: (value) =>
+                          viewModel.setEmergency(value ?? false),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Emergency Availability', style: AppTextStyles.titleMedium),
+                          Text('Emergency Availability',
+                              style: AppTextStyles.titleMedium),
                           const SizedBox(height: 6),
                           Text(
                             'Customers can contact you for urgent jobs outside your regular working hours',
-                            style: AppTextStyles.bodySmall.copyWith(color: AppColors.onSurfaceVariant),
+                            style: AppTextStyles.bodySmall
+                                .copyWith(color: AppColors.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -182,6 +267,7 @@ class AvailabilitySetupScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+
               const SizedBox(height: AppDimensions.spacing20),
               Text('Availability Calendar', style: AppTextStyles.bodyLarge),
               const SizedBox(height: AppDimensions.spacing12),
@@ -199,7 +285,8 @@ class AvailabilitySetupScreen extends ConsumerWidget {
                   ),
                   child: const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    child: Text('Calendar', style: TextStyle(fontWeight: FontWeight.w600)),
+                    child: Text('Calendar',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
                   ),
                 ),
               ),
