@@ -4,55 +4,64 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // ✅ Correct base URL (make sure this matches your local IP)
-  static const String baseUrl = "http://192.168.4.175:8000/api/tradie";
+  static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
 
-  // ✅ Hardcoded token (replace with your working one)
-  static const String token = "5|XMGbQkyg7DtrB35QWxe6r9UrJXV197ZTR64CJGjH91266e95";
+  // ✅ Hardcoded token to bypass login
+  static const String token = "7|XULoPEKfwdg3MrihDS7AcKfx55OEOXezA5KSyXNNc7d32ead";
 
-  /// Upload basic profile information
-  Future<bool> uploadBasicInfo({
-    required String firstName,
-    required String lastName,
-    required String email,
-    required String phoneNumber,
-    required String businessName,
-    String? bio,
-    File? avatarImage,
-  }) async {
-    final uri = Uri.parse("$baseUrl/profile-setup/basic-info"); // ✅ Matches backend route
-    final request = http.MultipartRequest("POST", uri);
+  /// Generic POST (for JSON body)
+  Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final response = await http.post(
+      uri,
+      headers: _headers(),
+      body: jsonEncode(body),
+    );
+    _logResponse(response);
+    return response;
+  }
 
-    // ✅ Headers
-    request.headers["Authorization"] = "Bearer $token";
-    request.headers["Accept"] = "application/json";
+  /// Generic Multipart POST (for images/files)
+  Future<Map<String, dynamic>> multipartPost({
+  required String endpoint,
+  required Map<String, String> fields,
+  File? file,
+  String? fileFieldName,
+}) async {
+  final uri = Uri.parse('$baseUrl$endpoint');
+  final request = http.MultipartRequest('POST', uri);
 
-    // ✅ Fields
-    request.fields["first_name"] = firstName;
-    request.fields["last_name"] = lastName;
-    request.fields["email"] = email;
-    request.fields["phone"] = phoneNumber;
-    request.fields["business_name"] = businessName;
-    if (bio != null) request.fields["professional_bio"] = bio;
+  request.headers.addAll({
+    'Authorization': 'Bearer $token',
+    'Accept': 'application/json',
+  });
 
-    // ✅ Optional image
-    if (avatarImage != null) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'avatar',
-        avatarImage.path,
-      ));
-    }
+  request.fields.addAll(fields);
 
-    final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-    print("Response: $responseBody");
+  if (file != null && fileFieldName != null) {
+    request.files.add(await http.MultipartFile.fromPath(fileFieldName, file.path));
+  }
 
-    if (response.statusCode == 200) {
-      print("✅ Profile info uploaded successfully!");
-      return true;
-    } else {
-      print("❌ Failed to upload basic info. Status: ${response.statusCode}");
-      return false;
-    }
+  final streamedResponse = await request.send();
+  final responseBody = await streamedResponse.stream.bytesToString();
+
+  print("🔹 Laravel Response: $responseBody");
+
+  return {
+    'statusCode': streamedResponse.statusCode,
+    'body': responseBody,
+  };
+}
+
+
+  Map<String, String> _headers() => {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+  void _logResponse(http.Response response) {
+    print("🔹 [${response.statusCode}] ${response.request?.url}");
+    print("Response body: ${response.body}");
   }
 }

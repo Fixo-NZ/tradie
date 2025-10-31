@@ -1,7 +1,7 @@
 // lib/constants/api_constants.dart
 class ApiConstants {
   // ✅ Use your local IP for emulator/device testing
-  static const String baseUrl = 'http://192.168.4.175:8000/api/tradie';
+  static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
 
   // Auth Endpoints
   static const String loginEndpoint = '/login';

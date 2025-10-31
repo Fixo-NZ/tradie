@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'skills_setup_screen.dart';
 import '../viewmodels/profile_setup_viewmodel.dart';
 
+
 class ProfileSetupScreen extends ConsumerWidget {
   const ProfileSetupScreen({super.key});
 
@@ -34,32 +35,39 @@ class ProfileSetupScreen extends ConsumerWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ContinueFloatingButton(
         onPressed: () async {
-          // clear previous errors
-          // Basic client-side check before submit
-          if (state.firstName.isNotEmpty &&
-              state.lastName.isNotEmpty &&
-              state.email.isNotEmpty &&
-              state.businessName.isNotEmpty &&
-              state.phone.isNotEmpty) {
-            final success = await viewModel.submitBasicInfo();
-            if (success) {
-              // Navigate to skills setup screen
-              if (context.mounted) {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SkillsSetupScreen()),
-                );
-              }
-            } else {
-              final message = state.errorMessage ?? 'Failed to save profile';
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: Text(message)));
-            }
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please fill in all required fields')),
-            );
-          }
-        },
+  if (state.firstName.isNotEmpty &&
+      state.lastName.isNotEmpty &&
+      state.email.isNotEmpty &&
+      state.businessName.isNotEmpty &&
+      state.phone.isNotEmpty) {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final success = await viewModel.submitBasicInfo();
+
+    if (context.mounted) Navigator.pop(context); // close loader
+
+    if (success) {
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const SkillsSetupScreen()),
+        );
+      }
+    } else {
+      final message = state.errorMessage ?? 'Failed to save profile';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please fill in all required fields')),
+    );
+  }
+},
         backgroundColor: const Color(0xFF0000A8),
       ),
       body: SafeArea(

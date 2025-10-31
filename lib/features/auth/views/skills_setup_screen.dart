@@ -8,7 +8,6 @@ import 'availability_setup_screen.dart';
 import '../viewmodels/skills_viewmodel.dart';
 import '../services/skills_api_services.dart';
 
-
 class SkillsSetupScreen extends ConsumerWidget {
   const SkillsSetupScreen({super.key});
 
@@ -18,6 +17,12 @@ class SkillsSetupScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(skillsViewModelProvider.notifier);
     final state = ref.watch(skillsViewModelProvider);
+
+    // Controllers for location fields
+    final addressController = TextEditingController(text: "123 Test Street");
+    final cityController = TextEditingController(text: "San Juan");
+    final regionController = TextEditingController(text: "La Union");
+    final postalCodeController = TextEditingController(text: "2514");
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -30,59 +35,42 @@ class SkillsSetupScreen extends ConsumerWidget {
           style: AppTextStyles.appBarTitle.copyWith(color: Colors.black),
         ),
       ),
-         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-
-      // ✅ Updated Continue Button
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ContinueFloatingButton(
-        onPressed: () async {
-          final viewModelState = ref.read(skillsViewModelProvider);
+  onPressed: () async {
+    final success = await viewModel.submitSkills(
+      address: addressController.text,
+      city: cityController.text,
+      region: regionController.text,
+      postalCode: postalCodeController.text,
+    );
 
-          // 🧰 Collect selected skills (for now, using index+1 as fake ID)
-          final selectedSkills = viewModelState.skills
-              .asMap()
-              .entries
-              .where((e) => e.value.isSelected)
-              .map((e) => e.key + 1)
-              .toList();
+    if (success) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Skills & service area saved successfully!"),
+            backgroundColor: Colors.green,
+          ),
+        );
 
-          final serviceRadius = viewModelState.serviceRadius.round();
-
-          // 🗺️ Temporary location data (replace later with real map data)
-          final serviceLocation = {
-            "address": "123 Test Street",
-            "city": "Wellington",
-            "region": "Wellington",
-            "postal_code": "6011",
-            "latitude": -41.2865,
-            "longitude": 174.7762
-          };
-
-          // ✅ Call the API
-          final api = SkillsApiService();
-          final success = await api.updateSkillsAndService(
-            skillIds: selectedSkills,
-            serviceRadius: serviceRadius,
-            serviceLocation: serviceLocation,
-          );
-
-          if (success) {
-            print("✅ Skills & service area saved!");
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Saved successfully!")),
-            );
-
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const AvailabilitySetupScreen()),
-            );
-          } else {
-            print("❌ Failed to save skills & service area");
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Failed to save. Try again.")),
-            );
-          }
-        },
-      ),
-      
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AvailabilitySetupScreen()),
+        );
+      }
+    } else {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Failed to save skills & service area. Please try again."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  },
+),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -92,7 +80,7 @@ class SkillsSetupScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔵 Progress bar
+              // Progress bar
               LinearProgressIndicator(
                 value: 2 / 6,
                 minHeight: 4,
@@ -112,7 +100,7 @@ class SkillsSetupScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing12),
 
-              // 🧰 Skill items in two rows, horizontally scrollable
+              // Skill items horizontally scrollable
               SizedBox(
                 height: 280,
                 child: SingleChildScrollView(
@@ -176,9 +164,9 @@ class SkillsSetupScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // 📍 Service Radius section
+              // Service Radius
               Text(
-                'Service Radius(km)',
+                'Service Radius (km)',
                 style: AppTextStyles.bodyLarge.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -191,8 +179,6 @@ class SkillsSetupScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
-
-              // Slider
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   activeTrackColor: kCustomBlue,
@@ -207,7 +193,6 @@ class SkillsSetupScreen extends ConsumerWidget {
                   onChanged: viewModel.updateServiceRadius,
                 ),
               ),
-
               Align(
                 alignment: Alignment.centerRight,
                 child: Text(
@@ -220,7 +205,7 @@ class SkillsSetupScreen extends ConsumerWidget {
 
               const SizedBox(height: 20),
 
-              // 📍 Location
+              // Location Inputs
               Text(
                 'Your Location',
                 style: AppTextStyles.bodyLarge.copyWith(
@@ -229,21 +214,52 @@ class SkillsSetupScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               TextFormField(
+                controller: addressController,
                 decoration: InputDecoration(
-                  hintText: 'Search Location...',
-                  prefixIcon: const Icon(Icons.search),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  labelText: 'Address',
+                  prefixIcon: const Icon(Icons.location_on),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: AppColors.surfaceVariant),
                   ),
                 ),
               ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: cityController,
+                decoration: InputDecoration(
+                  labelText: 'City',
+                  prefixIcon: const Icon(Icons.location_city),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: regionController,
+                decoration: InputDecoration(
+                  labelText: 'Region',
+                  prefixIcon: const Icon(Icons.map),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: postalCodeController,
+                decoration: InputDecoration(
+                  labelText: 'Postal Code',
+                  prefixIcon: const Icon(Icons.local_post_office),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 16),
 
-              // 🗺️ Map
+              // Dummy Map
               Container(
                 height: 200,
                 decoration: BoxDecoration(

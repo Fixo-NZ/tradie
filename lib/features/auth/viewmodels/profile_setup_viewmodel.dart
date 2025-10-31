@@ -85,20 +85,41 @@ class ProfileSetupViewModel extends StateNotifier<ProfileSetupState> {
 
     state = state.copyWith(isLoading: true, errorMessage: null);
 
-    final success = await _service.submitBasicInfo(
+    final result = await _service.submitBasicInfo(
       firstName: state.firstName,
       lastName: state.lastName,
       email: state.email,
       phone: state.phone,
       businessName: state.businessName,
-      professionalBio: state.professionalBio,
+      professionalBio: state.professionalBio.isEmpty ? null : state.professionalBio,
       avatarImage: state.pickedImage, // ✅ include image
     );
 
     state = state.copyWith(isLoading: false);
 
+    final success = result['success'] == true;
     if (!success) {
-      state = state.copyWith(errorMessage: 'Failed to save profile. Try again.');
+      // try to extract a helpful message from server response
+      final body = result['body'];
+      String message = 'Failed to save profile. Try again.';
+      try {
+        if (body is Map && body.containsKey('message')) {
+          message = body['message'].toString();
+        } else if (body is Map && body.containsKey('error')) {
+          message = body['error'].toString();
+        } else if (body is Map && body.containsKey('errors')) {
+          final errors = body['errors'];
+          if (errors is Map && errors.isNotEmpty) {
+            final firstKey = errors.keys.first;
+            final firstVal = errors[firstKey];
+            if (firstVal is List && firstVal.isNotEmpty) {
+              message = firstVal.first.toString();
+            }
+          }
+        }
+      } catch (_) {}
+
+      state = state.copyWith(errorMessage: message);
     }
 
     return success;
