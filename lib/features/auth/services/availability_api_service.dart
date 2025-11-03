@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'api_service.dart';
 
 class AvailabilityApiService extends ApiService {
+
   Future<bool> updateAvailability({
     required List<String> days,
-    String? fromTime, // 👈 allow null
-    String? toTime,   // 👈 allow null
+    String? fromTime, 
+    String? toTime,   
     required bool emergencyAvailable,
   }) async {
-    final endpoint = '/profile-setup/availability'; // <-- match your Laravel route
+    final endpoint = '/profile-setup/availability'; 
 
     final body = {
   if (days.isNotEmpty)

@@ -49,8 +49,11 @@ class SkillsSetupScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Skills & service area saved successfully!"),
-            backgroundColor: Colors.green,
+            content: Text(
+              "Skills & service area saved successfully!",
+              style: TextStyle(color: Colors.black87),
+            ),
+            backgroundColor: Color(0xFFEEEEEE),
           ),
         );
 
@@ -217,10 +220,28 @@ class SkillsSetupScreen extends ConsumerWidget {
                 controller: addressController,
                 decoration: InputDecoration(
                   labelText: 'Address',
-                  prefixIcon: const Icon(Icons.location_on),
+                  labelStyle: AppTextStyles.bodyLarge.copyWith(
+                    color: AppColors.onSurface,
+                    fontSize: 16,
+                  ),
+                  prefixIcon: Icon(Icons.location_on, color: AppColors.onSurfaceVariant),
+                  filled: true,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: kCustomBlue),
+                  ),
+                ),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.onSurface,
                 ),
               ),
               const SizedBox(height: 12),
@@ -228,10 +249,28 @@ class SkillsSetupScreen extends ConsumerWidget {
                 controller: cityController,
                 decoration: InputDecoration(
                   labelText: 'City',
-                  prefixIcon: const Icon(Icons.location_city),
+                  labelStyle: AppTextStyles.bodyLarge.copyWith(
+                    color: AppColors.onSurface,
+                    fontSize: 16,
+                  ),
+                  prefixIcon: Icon(Icons.location_city, color: AppColors.onSurfaceVariant),
+                  filled: true,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: kCustomBlue),
+                  ),
+                ),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.onSurface,
                 ),
               ),
               const SizedBox(height: 12),
@@ -239,10 +278,28 @@ class SkillsSetupScreen extends ConsumerWidget {
                 controller: regionController,
                 decoration: InputDecoration(
                   labelText: 'Region',
-                  prefixIcon: const Icon(Icons.map),
+                  labelStyle: AppTextStyles.bodyLarge.copyWith(
+                    color: AppColors.onSurface,
+                    fontSize: 16,
+                  ),
+                  prefixIcon: Icon(Icons.map, color: AppColors.onSurfaceVariant),
+                  filled: true,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: kCustomBlue),
+                  ),
+                ),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.onSurface,
                 ),
               ),
               const SizedBox(height: 12),
@@ -250,10 +307,28 @@ class SkillsSetupScreen extends ConsumerWidget {
                 controller: postalCodeController,
                 decoration: InputDecoration(
                   labelText: 'Postal Code',
-                  prefixIcon: const Icon(Icons.local_post_office),
+                  labelStyle: AppTextStyles.bodyLarge.copyWith(
+                    color: AppColors.onSurface,
+                    fontSize: 16,
+                  ),
+                  prefixIcon: Icon(Icons.local_post_office, color: AppColors.onSurfaceVariant),
+                  filled: true,
+                  fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
                   ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: kCustomBlue),
+                  ),
+                ),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.onSurface,
                 ),
               ),
 

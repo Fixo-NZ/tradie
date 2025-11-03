@@ -26,7 +26,7 @@ class ProfileApiService extends ApiService {
       final result = await multipartPost(
         endpoint: '/profile-setup/basic-info',
         fields: fields,
-        file: avatarImage, // You can leave this null for now
+        file: avatarImage, 
         fileFieldName: 'avatar',
       );
 

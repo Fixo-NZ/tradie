@@ -7,21 +7,70 @@ import '../../../core/widgets/navigation_widgets.dart';
 import 'done_screen.dart';
 import '../viewmodels/rates_setup_viewmodel.dart';
 
-final ratesSetupProvider = StateNotifierProvider<RatesSetupViewModel, RatesSetupState>(
+final ratesSetupProvider =
+    StateNotifierProvider<RatesSetupViewModel, RatesSetupState>(
   (ref) => RatesSetupViewModel(),
 );
 
 class RatesSetupScreen extends ConsumerWidget {
   const RatesSetupScreen({super.key});
 
-  void _onContinue(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DoneScreen()));
+  // ✅ Handles save + navigation logic safely
+  void _onContinue(BuildContext context, WidgetRef ref) async {
+    final viewModel = ref.read(ratesSetupProvider.notifier);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Saving your rates..."),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    final success = await viewModel.saveRates();
+
+    if (success) {
+      Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => const DoneScreen()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('❌ Failed to save rates')),
+      );
+    }
+  }
+
+
+  List<Map<String, String>> _generateTimeIntervals() {
+    final intervals = <Map<String, String>>[];
+    for (int hour = 0; hour <= 24; hour++) {
+      if (hour != 0) {
+        intervals.add({
+          'label': '$hour ${hour == 1 ? 'hour' : 'hours'}',
+          'value': '${hour.toString().padLeft(2, '0')}:00',
+        });
+      }
+      if (hour < 24) {
+        intervals.add({
+          'label': '$hour ${hour == 1 ? 'hour' : 'hours'} 30 mins',
+          'value': '${hour.toString().padLeft(2, '0')}:30',
+        });
+      }
+    }
+    return intervals;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final viewModel = ref.read(ratesSetupProvider.notifier);
     final state = ref.watch(ratesSetupProvider);
+
+    final timeOptions = _generateTimeIntervals();
+
+    // Make sure dropdownValue is always safe
+    final dropdownValue = timeOptions
+        .firstWhere(
+          (element) => element['value'] == state.minimumHoursString,
+          orElse: () => timeOptions.first,
+        )['value'];
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -36,8 +85,11 @@ class RatesSetupScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton:
-          ContinueFloatingButton(onPressed: () => _onContinue(context), width: 150, height: 48),
+      floatingActionButton: ContinueFloatingButton(
+        onPressed: () => _onContinue(context, ref),
+        width: 150,
+        height: 48,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -55,19 +107,22 @@ class RatesSetupScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
+              // ====== HEADER ======
               Text(
                 'Your Portfolio',
-                style: AppTextStyles.headlineSmall
-                    .copyWith(color: const Color.fromRGBO(9, 12, 155, 1.0), fontSize: 18),
+                style: AppTextStyles.headlineSmall.copyWith(
+                  color: const Color.fromRGBO(9, 12, 155, 1.0),
+                  fontSize: 18,
+                ),
               ),
               const SizedBox(height: AppDimensions.spacing12),
-
               Text(
                 'Your Rates',
                 style: AppTextStyles.headlineSmall.copyWith(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.onSurface),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.onSurface,
+                ),
               ),
               const SizedBox(height: AppDimensions.spacing8),
               Text(
@@ -77,13 +132,13 @@ class RatesSetupScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
+              // ====== CHARGE MODE ======
               Text(
                 'How do you prefer to charge?',
-                style:
-                    AppTextStyles.bodySmall.copyWith(color: AppColors.onSurface),
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: AppColors.onSurface),
               ),
               const SizedBox(height: AppDimensions.spacing8),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -114,104 +169,110 @@ class RatesSetupScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              Text('Standard Rate',
-                  style: AppTextStyles.bodyLarge
-                      .copyWith(fontWeight: FontWeight.w600)),
+              // ====== STANDARD RATE & MINIMUM HOURS DROPDOWN ======
+              Text(
+                'Standard Rate & Minimum Hours',
+                style: AppTextStyles.bodyLarge
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: AppDimensions.spacing8),
-
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    flex: 2,
                     child: TextFormField(
                       initialValue: state.hourlyRate,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.white,
                         prefixText: '\$ ',
-                        hintText: '0.00',
-                        hintStyle:
-                            const TextStyle(color: Color(0xFFBDBDBD)),
+                        filled: true,
+                        fillColor: AppColors.surface,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide:
                               const BorderSide(color: Color(0xFFDDDDDD)),
                         ),
+                        hintText: "Enter rate",
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 16),
                       ),
                       onChanged: viewModel.updateHourlyRate,
                     ),
                   ),
-                  const SizedBox(width: AppDimensions.spacing12),
-
+                  const SizedBox(width: 12),
                   Expanded(
-                    flex: 1,
-                    child: DropdownButtonFormField<int>(
-                      value: state.minimumHours,
-                      items: [1, 2, 3, 4, 5].map((e) {
-                        return DropdownMenuItem<int>(
-                          value: e,
+                    child: DropdownButtonFormField<String>(
+                      value: dropdownValue,
+                      items: timeOptions.map((time) {
+                        return DropdownMenuItem<String>(
+                          value: time['value'],
                           child: Text(
-                            '$e hour${e > 1 ? 's' : ''}',
-                            style: const TextStyle(
-                                fontSize: 14, color: Colors.black),
+                            time['label']!,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.onSurface,
+                            ),
                           ),
                         );
                       }).toList(),
                       onChanged: (value) {
-                        viewModel.updateMinimumHours(value ?? 1);
+                        if (value != null) {
+                          viewModel.updateMinimumHoursString(value);
+                        }
                       },
                       dropdownColor: Colors.white,
-                      iconEnabledColor: const Color.fromRGBO(9, 12, 155, 1.0),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide:
-                              const BorderSide(color: Color(0xFFDDDDDD)),
+                          borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: AppColors.tradieBlue),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 16),
+                      ),
+                      icon: Icon(Icons.arrow_drop_down, color: AppColors.onSurface),
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.onSurface,
                       ),
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(height: AppDimensions.spacing12),
+
+              // ====== DESCRIPTION ======
               const Text(
                 'Description (Optional)',
-                style: TextStyle(
-                    fontSize: 12, color: AppColors.onSurfaceVariant),
+                style:
+                    TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
               ),
               const SizedBox(height: 8),
-
               TextFormField(
-                initialValue: state.hourlyRate,
-                minLines: 5,
-                maxLines: 8,
+                initialValue: state.description,
+                minLines: 4,
+                maxLines: 6,
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: AppColors.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide:
-                        const BorderSide(color: Color(0xFFDDDDDD)),
+                    borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
                   ),
-                  hintText:
-                      "Describe what's included in your standard rate",
+                  hintText: "Describe what's included in your standard rate",
                   contentPadding: const EdgeInsets.all(12),
                 ),
-                onChanged: viewModel.updateHourlyRate,
+                onChanged: viewModel.updateDescription,
               ),
-
               const SizedBox(height: AppDimensions.spacing12),
 
+              // ====== AFTER HOURS ======
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: const Color(0xFFE6E6E6)),
@@ -221,13 +282,18 @@ class RatesSetupScreen extends ConsumerWidget {
                 child: ListTile(
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  title: Text('After Hours Rate',
-                      style: AppTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.onSurface)),
-                  subtitle: Text('When working overtime charge a fee',
-                      style: AppTextStyles.bodySmall
-                          .copyWith(color: AppColors.onSurfaceVariant)),
+                  title: Text(
+                    'After Hours Rate',
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'When working overtime charge a fee',
+                    style: AppTextStyles.bodySmall
+                        .copyWith(color: AppColors.onSurfaceVariant),
+                  ),
                   trailing: Checkbox(
                     value: state.afterHours,
                     onChanged: viewModel.toggleAfterHours,
@@ -236,9 +302,9 @@ class RatesSetupScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: AppDimensions.spacing12),
 
+              // ====== CALL OUT FEE ======
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: const Color(0xFFE6E6E6)),
@@ -248,14 +314,18 @@ class RatesSetupScreen extends ConsumerWidget {
                 child: ListTile(
                   contentPadding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  title: Text('Charge A Service/Call-out Fee',
-                      style: AppTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.onSurface)),
+                  title: Text(
+                    'Charge A Service/Call-out Fee',
+                    style: AppTextStyles.bodyLarge.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.onSurface,
+                    ),
+                  ),
                   subtitle: Text(
-                      'Charge customers when contacting you or ask question',
-                      style: AppTextStyles.bodySmall
-                          .copyWith(color: AppColors.onSurfaceVariant)),
+                    'Charge customers when contacting you or asking questions',
+                    style: AppTextStyles.bodySmall
+                        .copyWith(color: AppColors.onSurfaceVariant),
+                  ),
                   trailing: Checkbox(
                     value: state.callOut,
                     onChanged: viewModel.toggleCallOut,
@@ -266,7 +336,7 @@ class RatesSetupScreen extends ConsumerWidget {
               ),
 
               const SizedBox(height: AppDimensions.spacing20),
-              const SizedBox(height: 80), // space for button
+              const SizedBox(height: 80),
             ],
           ),
         ),
@@ -275,7 +345,6 @@ class RatesSetupScreen extends ConsumerWidget {
   }
 }
 
-// Charge mode button widget
 class _ChargeModeButton extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -284,13 +353,13 @@ class _ChargeModeButton extends StatelessWidget {
   final Color selectedColor;
 
   const _ChargeModeButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.icon,
     required this.selected,
     required this.onTap,
     required this.selectedColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -309,78 +378,14 @@ class _ChargeModeButton extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                color:
-                    selected ? Colors.white.withOpacity(0.15) : Colors.transparent,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 16, color: textColor),
-            ),
+            Icon(icon, size: 16, color: textColor),
             const SizedBox(width: 8),
-            Text(label,
-                style: TextStyle(
-                    color: textColor, fontWeight: FontWeight.w600)),
+            Text(
+              label,
+              style:
+                  TextStyle(color: textColor, fontWeight: FontWeight.w600),
+            ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// Final screen after setup
-class DoneSetupScreen extends StatelessWidget {
-  const DoneSetupScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: const AppBackButton(),
-        title: Text(
-          'Create Profile',
-          style:
-              AppTextStyles.appBarTitle.copyWith(color: Colors.black),
-        ),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 96,
-                height: 96,
-                decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color.fromRGBO(9, 12, 155, 1.0)),
-                child: const Icon(Icons.check, color: Colors.white, size: 56),
-              ),
-              const SizedBox(height: 24),
-              Text('All set!',
-                  style: AppTextStyles.headlineSmall.copyWith(fontSize: 20)),
-              const SizedBox(height: 8),
-              Text('Your profile setup is complete.',
-                  style: AppTextStyles.bodyLarge
-                      .copyWith(color: Colors.black54)),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () =>
-                    Navigator.of(context).popUntil((route) => route.isFirst),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromRGBO(9, 12, 155, 1.0)),
-                child: const Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  child: Text('Finish'),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

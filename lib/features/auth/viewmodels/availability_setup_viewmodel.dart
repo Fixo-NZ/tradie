@@ -2,13 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/availability_api_service.dart';
 
 class AvailabilitySetupState {
-  final bool isLoading;
-  final String? errorMessage;
-  final List<String> days;
-  final String? fromTime;
-  final String? toTime;
-  final bool emergencyAvailability;
-  final bool success;
+  final bool isLoading; // Indicates if data is being loaded
+  final String? errorMessage; // Stores any error message
+  final List<String> days; // List of selected available days
+  final String? fromTime; // Start time of availability
+  final String? toTime; // End time of availability
+  final bool emergencyAvailability; // If emergency service is available
+  final bool success; // Indicates if the save operation was successful
 
   const AvailabilitySetupState({
     this.isLoading = false,
@@ -20,6 +20,7 @@ class AvailabilitySetupState {
     this.success = false,
   });
 
+  // Creates a copy of the current state with updated values
   AvailabilitySetupState copyWith({
     bool? isLoading,
     String? errorMessage,
@@ -42,16 +43,19 @@ class AvailabilitySetupState {
   }
 }
 
+// Provides access to the AvailabilitySetupViewModel for Riverpod state management
 final availabilitySetupViewModelProvider =
     StateNotifierProvider<AvailabilitySetupViewModel, AvailabilitySetupState>(
   (ref) => AvailabilitySetupViewModel(),
 );
 
+// Handles the logic and state changes for Availability Setup
 class AvailabilitySetupViewModel extends StateNotifier<AvailabilitySetupState> {
   AvailabilitySetupViewModel() : super(const AvailabilitySetupState());
 
   final _api = AvailabilityApiService();
 
+  // Toggles (adds/removes) a selected day in the availability list
   void toggleDay(String day) {
     final updated = List<String>.from(state.days);
     if (updated.contains(day)) {
@@ -62,19 +66,17 @@ class AvailabilitySetupViewModel extends StateNotifier<AvailabilitySetupState> {
     state = state.copyWith(days: updated);
   }
 
+  // Sets the start time of availability
   void setFromTime(String time) => state = state.copyWith(fromTime: time);
+
+  // Sets the end time of availability
   void setToTime(String time) => state = state.copyWith(toTime: time);
+
+  // Enables or disables emergency availability
   void setEmergency(bool value) =>
       state = state.copyWith(emergencyAvailability: value);
 
-/*************  ✨ Windsurf Command ⭐  *************/
-  /// Save the current availability settings to the server.
-  ///
-  /// [selectedDays] are the days that are currently selected.
-  /// [fromTime] is the time at which the availability starts.
-  /// [toTime] is the time at which the availability ends.
-  /// [emergencyAvailable] is whether emergency availability is enabled.
-/*******  cfa5b43b-11e5-4a51-b354-c6c46bd6ce6b  *******/
+  // Saves the selected availability settings to the backend API
   Future<bool> saveAvailability() async {
     final selectedDays = state.days;
 

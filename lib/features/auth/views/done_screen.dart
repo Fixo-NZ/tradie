@@ -7,6 +7,7 @@ import '../../../core/widgets/navigation_widgets.dart';
 import 'confirmation_screen.dart';
 import '../viewmodels/done_viewmodel.dart';
 
+// ✅ Riverpod provider that connects the ViewModel (logic) to the UI (this screen)
 final doneProvider = StateNotifierProvider<DoneViewModel, DoneState>(
   (ref) => DoneViewModel(),
 );
@@ -16,45 +17,55 @@ class DoneScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Get the ViewModel (logic controller)
     final viewModel = ref.read(doneProvider.notifier);
+
+    // Watch the current state (data: name, email, skills, etc.)
     final state = ref.watch(doneProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
+
+      // AppBar: The top navigation bar with a back button and title
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const AppBackButton(),
+        leading: const AppBackButton(), // Custom back button widget
         title: Text(
           'Create Profile',
           style: AppTextStyles.appBarTitle.copyWith(color: Colors.black),
         ),
       ),
+
+      // Floating button at the bottom right
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ContinueFloatingButton(
         onPressed: () {
+          // When pressed → navigate to ConfirmationScreen
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const ConfirmationScreen()),
           );
         },
         backgroundColor: AppColors.tradieBlue,
       ),
+
+      // Screen body content
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Progress bar
+              // Progress bar showing completion progress
               LinearProgressIndicator(
-                value: 1.0,
+                value: 1.0, // Fully completed
                 minHeight: 4,
                 color: const Color.fromRGBO(9, 12, 155, 1.0),
                 backgroundColor: AppColors.surfaceVariant,
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // Profile picture
+              // Profile picture section
               Center(
                 child: CircleAvatar(
                   radius: 50,
@@ -64,26 +75,43 @@ class DoneScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // Name and email
+              // User's name and email
               Center(
                 child: Column(
                   children: [
-                    Text(
-                      'Jane Smith',
-                      style: AppTextStyles.headlineSmall.copyWith(
-                        color: Colors.black,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                    if (state.isLoading)
+                      // Show loading indicator while fetching data
+                      const CircularProgressIndicator()
+                    else if (state.error != null)
+                      // Show error message if fetching failed
+                      Text(
+                        state.error!,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: Colors.red,
+                          fontSize: 16,
+                        ),
+                      )
+                    else ...[
+                      // Show user's full name
+                      Text(
+                        '${state.firstName ?? ''} ${state.lastName ?? ''}'.trim(),
+                        style: AppTextStyles.headlineSmall.copyWith(
+                          color: Colors.black,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppDimensions.spacing8),
-                    Text(
-                      'janesmith@example.com',
-                      style: AppTextStyles.bodyLarge.copyWith(
-                        color: AppColors.onSurfaceVariant,
-                        fontSize: 16,
+                      const SizedBox(height: AppDimensions.spacing8),
+
+                      // Show email
+                      Text(
+                        state.email ?? '',
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                          fontSize: 16,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -93,7 +121,8 @@ class DoneScreen extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.tradieBlue,
                     foregroundColor: Colors.white,
@@ -113,7 +142,7 @@ class DoneScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing24),
 
-              // Tabs
+              // Tabs (Portfolio, Credentials, Review)
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -143,6 +172,7 @@ class DoneScreen extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Section title
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacing12, vertical: AppDimensions.spacing8),
                     decoration: BoxDecoration(
@@ -159,6 +189,8 @@ class DoneScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: AppDimensions.spacing8),
+
+                  // User bio text box
                   Container(
                     padding: const EdgeInsets.all(AppDimensions.spacing16),
                     decoration: BoxDecoration(
@@ -166,7 +198,7 @@ class DoneScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
                     ),
                     child: Text(
-                      "I'm a mural painter passionate about transforming spaces with vibrant, meaningful artwork. With a focus on storytelling through visuals and attention to detail, I create murals that bring life to walls in businesses, homes, and public spaces. Whether bold, calming, or custom-designed, I aim to make each mural unique and impactful.",
+                      state.bio ?? 'No bio available',
                       style: AppTextStyles.bodyLarge.copyWith(
                         color: AppColors.onSurfaceVariant,
                         fontSize: 16,
@@ -181,10 +213,11 @@ class DoneScreen extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Section title
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacing12, vertical: AppDimensions.spacing8),
                     decoration: BoxDecoration(
-                      color: Colors.white, // Changed to white
+                      color: Colors.white, 
                       borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
                     ),
                     child: Text(
@@ -197,15 +230,14 @@ class DoneScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: AppDimensions.spacing8),
+
+                  // Displays a list of skill chips (tags)
                   Wrap(
                     spacing: AppDimensions.spacing8,
                     runSpacing: AppDimensions.spacing8,
-                    children: [
-                      _SkillChip(label: 'Painting'),
-                      _SkillChip(label: 'Wiring'),
-                      _SkillChip(label: 'Cable'),
-                      _SkillChip(label: 'Lighting'),
-                    ],
+                    children: state.skills.isEmpty
+                        ? [const Text('No skills added yet')]
+                        : state.skills.map((skill) => _SkillChip(label: skill)).toList(),
                   ),
                 ],
               ),
@@ -217,6 +249,7 @@ class DoneScreen extends ConsumerWidget {
   }
 }
 
+//  Custom Tab Button widget (used for Portfolio / Credentials / Review)
 class _TabButton extends StatelessWidget {
   final String label;
   final bool selected;
@@ -234,11 +267,12 @@ class _TabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap, 
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacing8),
         child: Column(
           children: [
+            
             Text(
               label,
               style: AppTextStyles.bodyLarge.copyWith(
@@ -247,6 +281,7 @@ class _TabButton extends StatelessWidget {
                 fontSize: 16,
               ),
             ),
+            // Underline indicator for selected tab
             if (underline)
               Container(
                 margin: const EdgeInsets.only(top: 4),
@@ -261,6 +296,7 @@ class _TabButton extends StatelessWidget {
   }
 }
 
+// Skill chip widget
 class _SkillChip extends StatelessWidget {
   final String label;
 
@@ -280,9 +316,9 @@ class _SkillChip extends StatelessWidget {
       child: Text(
         label,
         style: AppTextStyles.bodyLarge.copyWith(
-          color: Colors.black, // Changed to black
+          color: Colors.black,
           fontSize: 14,
-          fontWeight: FontWeight.w400, // Made text lighter
+          fontWeight: FontWeight.w400, 
         ),
       ),
     );

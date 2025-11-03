@@ -1,29 +1,41 @@
-// lib/services/api_service.dart
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
-  static const String baseUrl = "http://10.0.2.2:8000/api/tradie";
+  static const String baseUrl = "http://192.168.4.113:8000/api/tradie";
 
+  static const String token =
+      "7|XULoPEKfwdg3MrihDS7AcKfx55OEOXezA5KSyXNNc7d32ead";
 
-  // ✅ Hardcoded token to bypass login
-  static const String token = "4|801qugh9yA2pZ1IkTok0PCYCn11fE6DkH0yqIirB7833d121";
+  /// ✅ Generic GET
+  Future<Map<String, dynamic>> get(String endpoint) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    
+    final response = await http.get(
+      uri,
+      headers: _headers(),
+    );
 
-  /// Generic POST (for JSON body)
+    _logResponse(response);
+    return jsonDecode(response.body);
+  }
+
+  // Generic POST (for JSON body)
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final uri = Uri.parse('$baseUrl$endpoint');
+
     final response = await http.post(
       uri,
       headers: _headers(),
       body: jsonEncode(body),
     );
+
     _logResponse(response);
     return response;
   }
 
-  /// Generic Multipart POST (for images/files)
+  // Generic Multipart POST (for uploading images/files)
   Future<Map<String, dynamic>> multipartPost({
     required String endpoint,
     required Map<String, String> fields,
@@ -41,7 +53,10 @@ class ApiService {
     request.fields.addAll(fields);
 
     if (file != null && fileFieldName != null) {
-      request.files.add(await http.MultipartFile.fromPath(fileFieldName, file.path));
+      request.files.add(await http.MultipartFile.fromPath(
+        fileFieldName,
+        file.path,
+      ));
     }
 
     final streamedResponse = await request.send();
@@ -55,13 +70,14 @@ class ApiService {
     };
   }
 
-
+  // Common headers
   Map<String, String> _headers() => {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       };
 
+  // Log API responses for debugging
   void _logResponse(http.Response response) {
     print("🔹 [${response.statusCode}] ${response.request?.url}");
     print("Response body: ${response.body}");

@@ -119,7 +119,7 @@ class SkillsViewModel extends StateNotifier<SkillsState> {
   };
 
   final result = await _api.updateSkillsAndService(
-    skills: selectedSkillIds, // ✅ Make sure this is a List<int>
+    skills: selectedSkillIds,
     serviceRadius: state.serviceRadius.toInt(),
     serviceLocation: serviceLocation,
   );

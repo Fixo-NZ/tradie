@@ -11,22 +11,25 @@ import '../viewmodels/availability_setup_viewmodel.dart';
 class AvailabilitySetupScreen extends ConsumerWidget {
   const AvailabilitySetupScreen({super.key});
 
+  // Function to open the time picker (for selecting start or end time)
   Future<void> _selectTime(
     BuildContext context,
     WidgetRef ref, {
-    required bool isStart,
+    required bool isStart, 
   }) async {
     final viewModel = ref.read(availabilitySetupViewModelProvider.notifier);
     final initialTime = TimeOfDay.now();
 
+    // Opens the default Flutter time picker dialog
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: initialTime,
       builder: (BuildContext context, Widget? child) {
+        // Customize the time picker colors (blue primary, white background)
         return Theme(
           data: Theme.of(context).copyWith(
             dialogTheme: const DialogThemeData(
-              backgroundColor: Colors.white, // ✅ fixed type
+              backgroundColor: Colors.white,
             ),
             colorScheme: const ColorScheme.light(
               primary: Color.fromRGBO(9, 12, 155, 1.0),
@@ -38,21 +41,23 @@ class AvailabilitySetupScreen extends ConsumerWidget {
       },
     );
 
-    // ✅ guard BuildContext after async
+    // Prevent UI errors if user leaves the screen while picker is open
     if (!context.mounted) return;
 
+    // When a time is picked, update the ViewModel
     if (pickedTime != null) {
       final formattedTime = pickedTime.format(context);
       if (isStart) {
-        viewModel.setFromTime(formattedTime);
+        viewModel.setFromTime(formattedTime); // Set "From" time
       } else {
-        viewModel.setToTime(formattedTime);
+        viewModel.setToTime(formattedTime); // Set "To" time
       }
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Read ViewModel (logic) and its state (UI data)
     final viewModel = ref.read(availabilitySetupViewModelProvider.notifier);
     final state = ref.watch(availabilitySetupViewModelProvider);
 
@@ -69,31 +74,34 @@ class AvailabilitySetupScreen extends ConsumerWidget {
           style: AppTextStyles.appBarTitle.copyWith(color: Colors.black),
         ),
       ),
+
+      // Floating button to continue to the next setup screen
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ContinueFloatingButton(
         onPressed: () async {
+          // Save the user's availability to the backend
           final success = await viewModel.saveAvailability();
 
           if (!context.mounted) return;
 
           if (success) {
+            // Show success message and move to Portfolio Setup Screen
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Availability saved successfully!")),
             );
-            if (context.mounted) {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const PortfolioSetupScreen()),
-              );
-            }
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const PortfolioSetupScreen()),
+            );
           } else {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Failed to save availability.")),
-              );
-            }
+            // Show error message if save failed
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Failed to save availability.")),
+            );
           }
         },
       ),
+
+      // Main content of the page
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -103,6 +111,7 @@ class AvailabilitySetupScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Blue progress bar (Step 3 of 6)
               LinearProgressIndicator(
                 value: 3 / 6,
                 minHeight: 4,
@@ -110,6 +119,8 @@ class AvailabilitySetupScreen extends ConsumerWidget {
                 backgroundColor: const Color(0xFFDDE9FF),
               ),
               const SizedBox(height: AppDimensions.spacing16),
+
+              // Page header
               Text(
                 'Your Availability',
                 style: AppTextStyles.headlineSmall.copyWith(
@@ -124,7 +135,7 @@ class AvailabilitySetupScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing8),
 
-              // Days of the week
+              //  Select working days (Mon–Sun)
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -170,9 +181,10 @@ class AvailabilitySetupScreen extends ConsumerWidget {
               Text('Working Hours', style: AppTextStyles.bodyLarge),
               const SizedBox(height: AppDimensions.spacing8),
 
-              // From / To
+              //  Select working time range ("From" and "To")
               Row(
                 children: [
+                  // From time picker
                   Expanded(
                     child: InkWell(
                       onTap: () => _selectTime(context, ref, isStart: true),
@@ -200,6 +212,8 @@ class AvailabilitySetupScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   const Text('To'),
                   const SizedBox(width: 12),
+
+                  // To time picker
                   Expanded(
                     child: InkWell(
                       onTap: () => _selectTime(context, ref, isStart: false),
@@ -229,7 +243,7 @@ class AvailabilitySetupScreen extends ConsumerWidget {
 
               const SizedBox(height: AppDimensions.spacing16),
 
-              // Emergency Availability
+              //  Emergency Availability section (toggle switch)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
@@ -269,11 +283,14 @@ class AvailabilitySetupScreen extends ConsumerWidget {
               ),
 
               const SizedBox(height: AppDimensions.spacing20),
+
+              //  Optional calendar button to view/edit specific dates
               Text('Availability Calendar', style: AppTextStyles.bodyLarge),
               const SizedBox(height: AppDimensions.spacing12),
               Center(
                 child: ElevatedButton(
                   onPressed: () {
+                    // Opens the calendar page
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const CalendarScreen()),
                     );

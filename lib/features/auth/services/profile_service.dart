@@ -3,11 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../../core/constants/api_constants.dart';
 
-/// Profile upload service located in `lib/features/auth`.
-///
-/// Usage:
-/// final svc = ProfileService();
-/// await svc.uploadAvatar(file, token: '...');
+
 class ProfileService {
   final Dio _dio;
 
