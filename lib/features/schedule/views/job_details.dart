@@ -30,13 +30,18 @@ class JobDetailsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text(
           'Job Details',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black
+          ),
         ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          color: Colors.black,
           onPressed: () => context.pop(),
         ),
+        backgroundColor: Color(0xFFF8F9FF),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -134,21 +139,12 @@ class JobDetailsScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${event.homeowner.firstName} ${event.homeowner.middleName} ${event.homeowner.lastName}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            event.homeowner.address,
-                            style: const TextStyle(color: Colors.black54),
-                          ),
-                        ],
+                      Text(
+                        '${event.homeowner.firstName} ${event.homeowner.middleName} ${event.homeowner.lastName}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ],
                   ),

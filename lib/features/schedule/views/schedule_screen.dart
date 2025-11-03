@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:tradie/core/theme/app_text_styles.dart';
+import 'package:tradie/features/schedule/views/year_month_picker_screen.dart';
 import 'package:tradie/features/schedule/widgets/add_event_sheet.dart';
 import '../models/schedule_model.dart';
 import '../viewmodels/schedule_viewmodel.dart';
@@ -124,6 +125,77 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   ),
                 ),
                 calendarBuilders: CalendarBuilders(
+
+                  headerTitleBuilder: (context, date) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => YearMonthPickerScreen(
+                              initialDate: date,
+                              onMonthSelected: (selectedDate) {
+                                setState(() {
+                                  _focusedDay = selectedDate;
+                                });
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${DateFormat.MMMM().format(date)}\n',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                                fontSize: 20,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '${date.year}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.normal,
+                                color: Color(0xFF8F9BB3),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+
+
+                  // headerTitleBuilder: (context, date) {
+                  //   return RichText(
+                  //     textAlign: TextAlign.center,
+                  //     text: TextSpan(
+                  //       children: [
+                  //         TextSpan(
+                  //           text: '${DateFormat.MMMM().format(date)}\n',
+                  //           style: const TextStyle(
+                  //             fontWeight: FontWeight.bold,
+                  //             color: Colors.black,
+                  //             fontSize: 20,
+                  //           ),
+                  //         ),
+                  //         TextSpan(
+                  //           text: '${date.year}',
+                  //           style: const TextStyle(
+                  //             fontWeight: FontWeight.normal,
+                  //             color: Color(0xFF8F9BB3),
+                  //             fontSize: 12,
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   );
+                  // },
                   dowBuilder: (context, day) {
                     if (day.weekday == DateTime.sunday) {
                       return Center(
@@ -131,7 +203,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                           'Sun',
                           style: TextStyle(
                             color: Colors.red,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       );
@@ -168,13 +239,10 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                           color: isSunday
                               ? const Color(0xFFFF0000)
                               : const Color(0xFFB3B3B3),
-                          fontWeight: isSunday
-                              ? FontWeight.w600
-                              : FontWeight.normal,
                         ),
                       ),
                     );
-                  },
+                  },   
                 ),
               ),
             ),
@@ -283,22 +351,22 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        shape: const CircleBorder(),
-        backgroundColor: const Color(0xFF090C9B),
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.white,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-            ),
-            builder: (context) => const AddEventSheet(),
-          );
-        },
-        child: const Icon(Icons.add, size: 28, color: Colors.white),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   shape: const CircleBorder(),
+      //   backgroundColor: const Color(0xFF090C9B),
+      //   onPressed: () {
+      //     showModalBottomSheet(
+      //       context: context,
+      //       isScrollControlled: true,
+      //       backgroundColor: Colors.white,
+      //       shape: const RoundedRectangleBorder(
+      //         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      //       ),
+      //       builder: (context) => const AddEventSheet(),
+      //     );
+      //   },
+      //   child: const Icon(Icons.add, size: 28, color: Colors.white),
+      // ),
     );
   }
 }
