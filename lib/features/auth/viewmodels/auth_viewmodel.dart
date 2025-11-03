@@ -37,7 +37,6 @@ class AuthState {
   }
 }
 
-// Auth ViewModel
 class AuthViewModel extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
 
@@ -126,14 +125,13 @@ class AuthViewModel extends StateNotifier<AuthState> {
   }
 }
 
-// Providers
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
 });
 
 final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((
-  ref,
-) {
+    ref,
+    ) {
   final authRepository = ref.watch(authRepositoryProvider);
   return AuthViewModel(authRepository);
 });

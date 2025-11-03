@@ -1,7 +1,7 @@
 // lib/features/auth/models/auth_models.dart
 import 'package:json_annotation/json_annotation.dart';
 import '../../../core/models/tradie_model.dart';
-import 'auth_data_model.dart'; // <-- Import the new file
+import 'auth_data_model.dart';
 
 part 'auth_models.g.dart';
 
@@ -60,7 +60,6 @@ class AuthResponse {
     required this.data,
   });
 
-  // Helper getters so we don't have to change any other files
   String get accessToken => data.token;
   TradieModel get user => data.user;
 

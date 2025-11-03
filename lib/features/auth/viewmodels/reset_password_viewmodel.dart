@@ -1,22 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/auth_repository.dart';
 import '../../../core/network/api_result.dart';
-import 'auth_viewmodel.dart'; // <-- THIS IS THE FIX FOR ERROR 2
+import 'auth_viewmodel.dart';
 
-// 1. Define the states for the 3-step flow
 enum ResetPasswordStep {
-  enterEmail, // Step 1: Show ResetPasswordScreen
-  enterOtp, // Step 2: Show OtpScreen
-  enterNewPassword, // Step 3: Show NewPasswordScreen
-  success, // Final state: Show success, then navigate
+  enterEmail,
+  enterOtp,
+  enterNewPassword,
+  success,
 }
 
-// 2. Define the State class
 class ResetPasswordState {
   final bool isLoading;
   final String? error;
   final ResetPasswordStep step;
-  final String email; // We need to remember the email
+  final String email;
 
   const ResetPasswordState({
     this.isLoading = false,
@@ -33,30 +31,26 @@ class ResetPasswordState {
   }) {
     return ResetPasswordState(
       isLoading: isLoading ?? this.isLoading,
-      error: error, // Allow setting error to null
+      error: error,
       step: step ?? this.step,
       email: email ?? this.email,
     );
   }
 }
 
-// 3. Define the ViewModel
 class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
   final AuthRepository _authRepository;
 
   ResetPasswordViewModel(this._authRepository)
       : super(const ResetPasswordState());
 
-  // Step 1: Request OTP
   Future<void> requestOtp(String email) async {
     state = state.copyWith(isLoading: true, error: null);
 
-    // --- API CALL ---
     final result = await _authRepository.requestPasswordReset(email);
 
     switch (result) {
       case Success():
-      // On success, save the email and move to the OTP step
         state = state.copyWith(
           isLoading: false,
           email: email,
@@ -67,12 +61,9 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
     }
   }
 
-  // Step 2: Verify OTP
   Future<void> verifyOtp(String otp) async {
     state = state.copyWith(isLoading: true, error: null);
 
-    // --- API CALL ---
-    // We use the email we saved in the state
     final result = await _authRepository.verifyPasswordResetOtp(
       state.email,
       otp,
@@ -80,7 +71,6 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
 
     switch (result) {
       case Success():
-      // On success, move to the new password step
         state = state.copyWith(
           isLoading: false,
           step: ResetPasswordStep.enterNewPassword,
@@ -90,12 +80,10 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
     }
   }
 
-  // Step 3: Set New Password
   Future<void> setNewPassword(
       String password, String passwordConfirmation) async {
     state = state.copyWith(isLoading: true, error: null);
 
-    // --- API CALL ---
     final result = await _authRepository.setNewPassword(
       email: state.email,
       password: password,
@@ -104,7 +92,6 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
 
     switch (result) {
       case Success():
-      // On success, move to the final step
         state = state.copyWith(
           isLoading: false,
           step: ResetPasswordStep.success,
@@ -114,16 +101,13 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
     }
   }
 
-  // Helper to clear errors
   void clearError() {
     state = state.copyWith(error: null);
   }
 }
 
-// 4. Define the Riverpod Provider
 final resetPasswordViewModelProvider =
 StateNotifierProvider<ResetPasswordViewModel, ResetPasswordState>((ref) {
-  // authRepositoryProvider is now correctly found
   final authRepository = ref.watch(authRepositoryProvider);
   return ResetPasswordViewModel(authRepository);
 });

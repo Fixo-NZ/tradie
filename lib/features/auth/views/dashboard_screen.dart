@@ -48,7 +48,6 @@ class DashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Welcome message
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(AppDimensions.paddingMedium),
@@ -174,11 +173,7 @@ class DashboardScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.paddingMedium),
-          // --- THIS IS THE FIX ---
-          // We wrap the Column in a SingleChildScrollView
-          // to prevent it from overflowing if the text wraps.
           child: SingleChildScrollView(
-            // --- END OF FIX ---
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

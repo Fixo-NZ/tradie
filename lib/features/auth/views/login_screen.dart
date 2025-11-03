@@ -28,7 +28,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  // --- (CHANGE 1) Added your custom validator ---
   String? _validateEmailOrPhone(String? value) {
     if (value == null || value.isEmpty) {
       return "Please enter your Email/Number";
@@ -51,15 +50,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (next.isAuthenticated) {
         context.go('/dashboard');
       }
-      if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
     });
+
+    final generalError = authState.error != null &&
+        (authState.fieldErrors == null || authState.fieldErrors!.isEmpty);
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -81,33 +75,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               children: [
                 // --- Top Section ---
-                Expanded(
-                  flex: 1,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 10),
-                        Image.asset(
-                          "assets/logo.png",
-                          height: 75,
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          "FIXO",
-                          style: AppTextStyles.displaySmall
-                              .copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          "Enter your credentials to get started.",
-                          textAlign: TextAlign.center,
-                          style: AppTextStyles.bodyLarge
-                              .copyWith(color: AppColors.onSurfaceVariant),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
+                SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 10),
+                      Image.asset(
+                        "assets/logo.png",
+                        height: 75,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        "FIXO",
+                        style: AppTextStyles.displaySmall
+                            .copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        "Enter your credentials to get started.",
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.bodyLarge
+                            .copyWith(color: AppColors.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                   ),
                 ),
 
@@ -119,7 +110,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: AppDimensions.paddingLarge),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           const SizedBox(height: 10),
                           TextFormField(
@@ -133,7 +124,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               errorText: authState.fieldErrors?['email']?.first,
                             ),
-                            // --- (CHANGE 4) Using your validator ---
                             validator: _validateEmailOrPhone,
                           ),
                           const SizedBox(height: AppDimensions.spacing16),
@@ -192,56 +182,63 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          if (generalError)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: AppDimensions.spacing8),
+                              child: Text(
+                                authState.error!,
+                                style: AppTextStyles.bodyMedium
+                                    .copyWith(color: AppColors.error),
+                                textAlign: TextAlign.center,
+                              ),
+                            )
+                          else
+                            const SizedBox(height: 10),
                         ],
                       ),
                     ),
                   ),
                 ),
 
-                // --- Bottom Section (Button) ---
-                Expanded(
-                  flex: 1,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppDimensions.paddingLarge),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: AppDimensions.buttonHeight,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppDimensions.paddingLarge),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: AppDimensions.buttonHeight,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
-                          onPressed: authState.isLoading
-                              ? null
-                              : () {
-                            if (_formKey.currentState!.validate()) {
-                              authViewModel.clearError();
-                              authViewModel.login(
-                                _emailController.text.trim(),
-                                _passwordController.text,
-                              );
-                            }
-                          },
-                          child: authState.isLoading
-                              ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white),
-                            ),
-                          )
-                              : const Text(
-                            "Login",
-                            style: TextStyle(
-                                fontSize: 16, color: Colors.white),
+                        ),
+                        onPressed: authState.isLoading
+                            ? null
+                            : () {
+                          if (_formKey.currentState!.validate()) {
+                            authViewModel.clearError();
+                            authViewModel.login(
+                              _emailController.text.trim(),
+                              _passwordController.text,
+                            );
+                          }
+                        },
+                        child: authState.isLoading
+                            ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white),
                           ),
+                        )
+                            : const Text(
+                          "Login",
+                          style: TextStyle(
+                              fontSize: 16, color: Colors.white),
                         ),
                       ),
                     ),

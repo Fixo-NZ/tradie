@@ -16,10 +16,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggingIn = state.matchedLocation == '/login';
       final isRegistering = state.matchedLocation == '/register';
 
-      // This allows users to visit the reset password page when logged out
       final isResettingPassword = state.matchedLocation == '/reset-password';
 
-      // If not authenticated and not on login/register/reset page, redirect to login
       if (!isAuthenticated &&
           !isLoggingIn &&
           !isRegistering &&
@@ -27,7 +25,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         return '/login';
       }
 
-      // If authenticated and on login/register page, redirect to dashboard
       if (isAuthenticated && (isLoggingIn || isRegistering)) {
         return '/dashboard';
       }
