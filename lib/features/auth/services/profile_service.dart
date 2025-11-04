@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../../core/constants/api_constants.dart';
+import 'api_service.dart';
 
 
 class ProfileService {
@@ -25,9 +26,12 @@ class ProfileService {
       ),
     });
 
+    // Use provided token if present, otherwise fall back to ApiService.token
+    final usedToken = (token != null && token.isNotEmpty) ? token : ApiService.token;
+
     final options = Options(
       headers: {
-        if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+        if (usedToken.isNotEmpty) 'Authorization': 'Bearer $usedToken',
         'Accept': 'application/json',
       },
       contentType: 'multipart/form-data',

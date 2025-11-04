@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_dimensions.dart';
@@ -65,13 +66,35 @@ class DoneScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // Profile picture section
+              // Profile picture section (uses DoneState.avatar returned by the profile API)
               Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: AppColors.surfaceVariant,
-                  backgroundImage: AssetImage('assets/images/profile_picture.png'),
-                ),
+                child: Builder(builder: (context) {
+                  // The done state is already being watched above into `state` variable.
+                  final avatarPath = state.avatar;
+
+                  if (avatarPath != null && avatarPath.isNotEmpty) {
+                    final url = avatarPath.startsWith('http')
+                        ? avatarPath
+                        : '${ApiConstants.baseUrl}$avatarPath';
+                    final cacheBusted = '$url?t=${DateTime.now().millisecondsSinceEpoch}';
+
+                    return CircleAvatar(
+                      radius: 50,
+                      backgroundColor: AppColors.surfaceVariant,
+                      backgroundImage: NetworkImage(cacheBusted),
+                    );
+                  }
+
+                  return CircleAvatar(
+                    radius: 50,
+                    backgroundColor: AppColors.surfaceVariant,
+                    child: const Icon(
+                      Icons.person,
+                      size: 50,
+                      color: Colors.white70,
+                    ),
+                  );
+                }),
               ),
               const SizedBox(height: AppDimensions.spacing16),
 

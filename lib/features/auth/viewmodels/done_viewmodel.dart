@@ -20,6 +20,10 @@ class DoneViewModel extends StateNotifier<DoneState> {
       final data = await _apiService.fetchProfile();
       state = state.copyWith(
         firstName: data['first_name'],
+        // include avatar if returned by API
+        // API may use 'avatar' or 'avatar_url' — prefer 'avatar'
+        // keep it nullable when not provided
+        avatar: data['avatar'] ?? data['avatar_url'],
         lastName: data['last_name'],
         email: data['email'],
         bio: data['bio'],
@@ -69,6 +73,7 @@ class DoneState {
   final String? bio;
   final String? businessName;
   final String? phone;
+  final String? avatar;
   final List<String> skills;
   final bool isLoading;
   final String? error;
@@ -81,6 +86,7 @@ class DoneState {
     this.bio,
     this.businessName,
     this.phone,
+    this.avatar,
     this.skills = const [],
     this.isLoading = false,
     this.error,
@@ -94,6 +100,7 @@ class DoneState {
     String? bio,
     String? businessName,
     String? phone,
+    String? avatar,
     List<String>? skills,
     bool? isLoading,
     String? error,
@@ -106,6 +113,7 @@ class DoneState {
       bio: bio ?? this.bio,
       businessName: businessName ?? this.businessName,
       phone: phone ?? this.phone,
+      avatar: avatar ?? this.avatar,
       skills: skills ?? this.skills,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,

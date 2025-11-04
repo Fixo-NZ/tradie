@@ -1,9 +1,9 @@
 // lib/screens/profile_setup/profile_setup_screen.dart
 import 'dart:io';
-
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -284,49 +284,16 @@ class ProfileSetupScreen extends ConsumerWidget {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Stack(
-                                alignment: Alignment.topRight,
-                                children: [
-                                  Container(
-                                    width: 110,
-                                    height: 110,
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: AppColors.surfaceVariant,
-                                          width: 2),
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: 54,
-                                      backgroundColor: AppColors.surfaceVariant,
-                                      backgroundImage: state.pickedImage != null
-                                          ? FileImage(state.pickedImage!)
-                                          : null,
-                                      child: state.pickedImage == null
-                                          ? const Icon(
-                                              Icons.person,
-                                              size: 55,
-                                              color: AppColors.onSurface,
-                                            )
-                                          : null,
-                                    ),
-                                  ),
-                                  if (state.pickedImage != null)
-                                    Positioned(
-                                      top: 0,
-                                      right: 0,
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          viewModel.removeImage();
-                                        },
-                                        child: Container(
-                                          child: const Icon(Icons.close,
-                                              size: 20, color: Colors.redAccent),
-                                        ),
-                                      ),
-                                    ),
-                                ],
+                              _AvatarPreview(
+                                pickedImage: state.pickedImage,
+                                onRemove: () async {
+                                  await viewModel.removeImage();
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Profile picture removed')),
+                                    );
+                                  }
+                                },
                               ),
                               const SizedBox(width: 20),
                               Expanded(
@@ -397,6 +364,137 @@ class ProfileSetupScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Small helper widget to display the picked avatar (uses in-memory bytes)
+/// and provide a reliable remove action that evicts caches on Android emulators.
+class _AvatarPreview extends StatefulWidget {
+  final File? pickedImage;
+  final Future<void> Function()? onRemove;
+
+  const _AvatarPreview({Key? key, this.pickedImage, this.onRemove}) : super(key: key);
+
+  @override
+  State<_AvatarPreview> createState() => _AvatarPreviewState();
+}
+
+class _AvatarPreviewState extends State<_AvatarPreview> {
+  Uint8List? _bytes;
+  Key? _imageKey;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBytes();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AvatarPreview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.pickedImage?.path != oldWidget.pickedImage?.path) {
+      _loadBytes();
+    }
+  }
+
+  Future<void> _loadBytes() async {
+    if (widget.pickedImage != null) {
+      try {
+        final b = await widget.pickedImage!.readAsBytes();
+        if (!mounted) return;
+        setState(() {
+          _bytes = b;
+          _imageKey = UniqueKey();
+        });
+      } catch (_) {
+        if (!mounted) return;
+        setState(() {
+          _bytes = null;
+          _imageKey = UniqueKey();
+        });
+      }
+    } else {
+      if (!mounted) return;
+      setState(() {
+        _bytes = null;
+        _imageKey = UniqueKey();
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.topRight,
+      children: [
+        Container(
+          width: 110,
+          height: 110,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.surfaceVariant, width: 2),
+          ),
+          child: SizedBox(
+            width: 110,
+            height: 110,
+            child: ClipOval(
+              child: _bytes != null
+                  ? Image.memory(
+                      _bytes!,
+                      key: _imageKey,
+                      width: 110,
+                      height: 110,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      color: AppColors.surfaceVariant,
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.person,
+                        size: 55,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+        if (_bytes != null)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Material(
+              color: Colors.white,
+              shape: const CircleBorder(),
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () async {
+                  if (widget.pickedImage != null) {
+                    try {
+                      await FileImage(widget.pickedImage!).evict();
+                    } catch (_) {}
+                    try {
+                      PaintingBinding.instance.imageCache.clear();
+                    } catch (_) {}
+                  }
+                  // Clear local bytes immediately and notify parent
+                  if (mounted) {
+                    setState(() {
+                      _bytes = null;
+                      _imageKey = UniqueKey();
+                    });
+                  }
+                  if (widget.onRemove != null) await widget.onRemove!();
+                },
+                child: const Padding(
+                  padding: EdgeInsets.all(6.0),
+                  child: Icon(Icons.close, size: 20, color: Colors.redAccent),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

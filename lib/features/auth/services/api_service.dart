@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = "http://192.168.4.113:8000/api/tradie";
+  static const String baseUrl = "http://192.168.100.250:8000/api/tradie";
 
   static const String token =
-      "7|XULoPEKfwdg3MrihDS7AcKfx55OEOXezA5KSyXNNc7d32ead";
+      "20|ANvW0nyB5qXnngNF01fVwBwIdEb6oFw1MbLtYtULa00a62cc";
 
   /// ✅ Generic GET
   Future<Map<String, dynamic>> get(String endpoint) async {
