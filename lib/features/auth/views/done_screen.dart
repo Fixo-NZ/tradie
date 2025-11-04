@@ -8,7 +8,7 @@ import '../../../core/widgets/navigation_widgets.dart';
 import 'confirmation_screen.dart';
 import '../viewmodels/done_viewmodel.dart';
 
-// ✅ Riverpod provider that connects the ViewModel (logic) to the UI (this screen)
+// ✅ Riverpod provider
 final doneProvider = StateNotifierProvider<DoneViewModel, DoneState>(
   (ref) => DoneViewModel(),
 );
@@ -18,31 +18,24 @@ class DoneScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Get the ViewModel (logic controller)
     final viewModel = ref.read(doneProvider.notifier);
-
-    // Watch the current state (data: name, email, skills, etc.)
     final state = ref.watch(doneProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
-
-      // AppBar: The top navigation bar with a back button and title
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const AppBackButton(), // Custom back button widget
+        leading: const AppBackButton(),
         title: Text(
           'Create Profile',
           style: AppTextStyles.appBarTitle.copyWith(color: Colors.black),
         ),
       ),
 
-      // Floating button at the bottom right
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ContinueFloatingButton(
         onPressed: () {
-          // When pressed → navigate to ConfirmationScreen
           Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const ConfirmationScreen()),
           );
@@ -50,63 +43,71 @@ class DoneScreen extends ConsumerWidget {
         backgroundColor: AppColors.tradieBlue,
       ),
 
-      // Screen body content
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Progress bar showing completion progress
+              // ✅ Progress bar
               LinearProgressIndicator(
-                value: 1.0, // Fully completed
+                value: 1.0,
                 minHeight: 4,
                 color: const Color.fromRGBO(9, 12, 155, 1.0),
                 backgroundColor: AppColors.surfaceVariant,
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // Profile picture section (uses DoneState.avatar returned by the profile API)
+              // ✅ Profile Picture (fixed)
               Center(
-                child: Builder(builder: (context) {
-                  // The done state is already being watched above into `state` variable.
-                  final avatarPath = state.avatar;
+                child: Builder(
+                  builder: (context) {
+                    final avatarPath = state.avatar ?? '';
 
-                  if (avatarPath != null && avatarPath.isNotEmpty) {
-                    final url = avatarPath.startsWith('http')
-                        ? avatarPath
-                        : '${ApiConstants.baseUrl}$avatarPath';
-                    final cacheBusted = '$url?t=${DateTime.now().millisecondsSinceEpoch}';
+                    // ✅ Correct fix for Laravel response
+                    String? imageUrl;
+                    if (avatarPath.isNotEmpty) {
+                      if (avatarPath.startsWith('http')) {
+                        // full URL already
+                        imageUrl = avatarPath;
+                      } else if (avatarPath.contains('storage/')) {
+                        // Laravel storage relative path
+                        imageUrl =
+                            '${ApiConstants.baseUrl}/${avatarPath.replaceFirst(RegExp(r"^/"), "")}';
+                      } else {
+                        // plain filename (no storage/ prefix)
+                        imageUrl = '${ApiConstants.baseUrl}/storage/$avatarPath';
+                      }
+                    }
+
+                    // cache-buster to ensure new uploads refresh instantly
+                    final cacheBusted = imageUrl != null
+                        ? '$imageUrl?t=${DateTime.now().millisecondsSinceEpoch}'
+                        : null;
 
                     return CircleAvatar(
                       radius: 50,
                       backgroundColor: AppColors.surfaceVariant,
-                      backgroundImage: NetworkImage(cacheBusted),
+                      backgroundImage: (cacheBusted != null)
+                          ? NetworkImage(cacheBusted)
+                          : const AssetImage('assets/images/default_avatar.png')
+                              as ImageProvider,
+                      child: cacheBusted == null
+                          ? const Icon(Icons.person, size: 50, color: Colors.white70)
+                          : null,
                     );
-                  }
-
-                  return CircleAvatar(
-                    radius: 50,
-                    backgroundColor: AppColors.surfaceVariant,
-                    child: const Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Colors.white70,
-                    ),
-                  );
-                }),
+                  },
+                ),
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // User's name and email
+              // ✅ Name + Email
               Center(
                 child: Column(
                   children: [
                     if (state.isLoading)
-                      // Show loading indicator while fetching data
                       const CircularProgressIndicator()
                     else if (state.error != null)
-                      // Show error message if fetching failed
                       Text(
                         state.error!,
                         style: AppTextStyles.bodyLarge.copyWith(
@@ -115,7 +116,6 @@ class DoneScreen extends ConsumerWidget {
                         ),
                       )
                     else ...[
-                      // Show user's full name
                       Text(
                         '${state.firstName ?? ''} ${state.lastName ?? ''}'.trim(),
                         style: AppTextStyles.headlineSmall.copyWith(
@@ -125,8 +125,6 @@ class DoneScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: AppDimensions.spacing8),
-
-                      // Show email
                       Text(
                         state.email ?? '',
                         style: AppTextStyles.bodyLarge.copyWith(
@@ -140,12 +138,11 @@ class DoneScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing24),
 
-              // Edit Profile button
+              // ✅ Edit Profile button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                  },
+                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.tradieBlue,
                     foregroundColor: Colors.white,
@@ -165,7 +162,7 @@ class DoneScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing24),
 
-              // Tabs (Portfolio, Credentials, Review)
+              // ✅ Tabs
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -191,13 +188,14 @@ class DoneScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // About Me section
+              // ✅ About Me
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Section title
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacing12, vertical: AppDimensions.spacing8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.spacing12,
+                        vertical: AppDimensions.spacing8),
                     decoration: BoxDecoration(
                       color: const Color.fromRGBO(9, 12, 155, 0.1),
                       borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
@@ -212,8 +210,6 @@ class DoneScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: AppDimensions.spacing8),
-
-                  // User bio text box
                   Container(
                     padding: const EdgeInsets.all(AppDimensions.spacing16),
                     decoration: BoxDecoration(
@@ -232,15 +228,16 @@ class DoneScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // My Skills section
+              // ✅ My Skills
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Section title
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacing12, vertical: AppDimensions.spacing8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.spacing12,
+                        vertical: AppDimensions.spacing8),
                     decoration: BoxDecoration(
-                      color: Colors.white, 
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
                     ),
                     child: Text(
@@ -253,8 +250,6 @@ class DoneScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: AppDimensions.spacing8),
-
-                  // Displays a list of skill chips (tags)
                   Wrap(
                     spacing: AppDimensions.spacing8,
                     runSpacing: AppDimensions.spacing8,
@@ -272,7 +267,7 @@ class DoneScreen extends ConsumerWidget {
   }
 }
 
-//  Custom Tab Button widget (used for Portfolio / Credentials / Review)
+// ✅ Tab Button widget
 class _TabButton extends StatelessWidget {
   final String label;
   final bool selected;
@@ -290,27 +285,29 @@ class _TabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap, 
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacing8),
         child: Column(
           children: [
-            
             Text(
               label,
               style: AppTextStyles.bodyLarge.copyWith(
-                color: selected ? const Color.fromRGBO(9, 12, 155, 1.0) : AppColors.onSurfaceVariant,
+                color: selected
+                    ? const Color.fromRGBO(9, 12, 155, 1.0)
+                    : AppColors.onSurfaceVariant,
                 fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                 fontSize: 16,
               ),
             ),
-            // Underline indicator for selected tab
             if (underline)
               Container(
                 margin: const EdgeInsets.only(top: 4),
                 height: 2,
                 width: 40,
-                color: selected ? const Color.fromRGBO(9, 12, 155, 1.0) : Colors.transparent,
+                color: selected
+                    ? const Color.fromRGBO(9, 12, 155, 1.0)
+                    : Colors.transparent,
               ),
           ],
         ),
@@ -319,7 +316,7 @@ class _TabButton extends StatelessWidget {
   }
 }
 
-// Skill chip widget
+// ✅ Skill chip widget
 class _SkillChip extends StatelessWidget {
   final String label;
 
@@ -331,7 +328,8 @@ class _SkillChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacing12, vertical: AppDimensions.spacing8),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.spacing12, vertical: AppDimensions.spacing8),
       decoration: BoxDecoration(
         color: const Color.fromRGBO(9, 12, 155, 0.1),
         borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
@@ -341,7 +339,7 @@ class _SkillChip extends StatelessWidget {
         style: AppTextStyles.bodyLarge.copyWith(
           color: Colors.black,
           fontSize: 14,
-          fontWeight: FontWeight.w400, 
+          fontWeight: FontWeight.w400,
         ),
       ),
     );
