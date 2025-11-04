@@ -30,6 +30,22 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
     endTime = TimeOfDay.fromDateTime(widget.event.endDate);
   }
 
+  void showSnack(String message) {
+  final rootContext = Navigator.of(context, rootNavigator: true).context;
+  ScaffoldMessenger.of(rootContext).showSnackBar(
+    SnackBar(
+      content: Text(message),
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+      duration: const Duration(seconds: 2),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    ),
+  );
+}
+
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -73,6 +89,7 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
 
             const SizedBox(height: 12),
 
+            // Event note
             TextField(
               controller: _noteController,
               enabled: false,
@@ -185,9 +202,11 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
+
+                  Navigator.pop(context);
+                  
                   if (selectedDate == null || startTime == null || endTime == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please select date and time')));
+                    showSnack("Please select date and time");
                     return;
                   }
 
@@ -207,18 +226,41 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
                     endTime!.minute,
                   );
 
-                  // Reschedule via provider
+                  if (newEnd.isBefore(newStart)) {
+                    showSnack("End time cannot be earlier than start time.");
+                    return;
+                  }
+
+                  final duration = newEnd.difference(newStart).inMinutes;
+                  if (duration < 30) {
+                    showSnack("Appointment must be at least 30 minutes long.");
+                    return;
+                  }
+
+                  final schedules = ref.read(scheduleViewModelProvider).schedules
+                      .where((e) => e.id != widget.event.id)
+                      .toList();
+
+                  final hasConflict = schedules.any((e) {
+                    return e.startDate.isBefore(newEnd) && e.endDate.isAfter(newStart);
+                  });
+
+                  if (hasConflict) {
+                    showSnack("Conflicting appointment. Please choose another time.");
+                    return;
+                  }
+
+                  showSnack("Schedule successfully rescheduled");
+                  
                   await ref.read(scheduleViewModelProvider.notifier).rescheduleEvent(
                         id: widget.event.id,
                         date: selectedDate!,
                         startTime: newStart,
                         endTime: newEnd,
                       );
-
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Schedule successfully rescheduled')));
+            
                 },
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF090C9B),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

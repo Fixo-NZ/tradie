@@ -119,10 +119,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 ),
                 calendarStyle: const CalendarStyle(
                   outsideDaysVisible: false,
-                  markerDecoration: BoxDecoration(
-                    color: Color.fromARGB(255, 252, 189, 52),
-                    shape: BoxShape.circle,
-                  ),
                 ),
                 calendarBuilders: CalendarBuilders(
 
@@ -170,7 +166,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                     );
                   },
 
-
                   // headerTitleBuilder: (context, date) {
                   //   return RichText(
                   //     textAlign: TextAlign.center,
@@ -196,6 +191,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   //     ),
                   //   );
                   // },
+
                   dowBuilder: (context, day) {
                     if (day.weekday == DateTime.sunday) {
                       return Center(
@@ -243,6 +239,27 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       ),
                     );
                   },   
+                  markerBuilder: (context, day, events) {
+                    if (events.isEmpty) return const SizedBox();
+
+                    int count = events.length;
+                    int dotCount = count == 1 ? 1 : count == 2 ? 2 : 3;
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(dotCount, (index) {
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 1.5, vertical: 1),
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: Color.fromARGB(255, 252, 189, 52), // Your dot color
+                            shape: BoxShape.circle,
+                          ),
+                        );
+                      }),
+                    );
+                  },
                 ),
               ),
             ),
