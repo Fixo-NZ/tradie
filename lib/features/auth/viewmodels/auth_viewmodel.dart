@@ -37,7 +37,6 @@ class AuthState {
   }
 }
 
-// Auth ViewModel
 class AuthViewModel extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
 
@@ -76,8 +75,8 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
   Future<bool> register({
     required String firstName,
-    String? middleName,
     required String lastName,
+    String? middleName,
     required String email,
     required String password,
     required String passwordConfirmation,
@@ -87,8 +86,8 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
     final request = RegisterRequest(
       firstName: firstName,
-      middleName: middleName,
       lastName: lastName,
+      middleName: middleName,
       email: email,
       password: password,
       passwordConfirmation: passwordConfirmation,
@@ -126,14 +125,13 @@ class AuthViewModel extends StateNotifier<AuthState> {
   }
 }
 
-// Providers
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
 });
 
 final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((
-  ref,
-) {
+    ref,
+    ) {
   final authRepository = ref.watch(authRepositoryProvider);
   return AuthViewModel(authRepository);
 });

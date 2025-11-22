@@ -48,7 +48,6 @@ class DashboardScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Welcome message
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(AppDimensions.paddingMedium),
@@ -160,13 +159,13 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildActionCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required String title,
+        required String subtitle,
+        required Color color,
+        required VoidCallback onTap,
+      }) {
     return Card(
       elevation: 2,
       child: InkWell(
@@ -174,36 +173,39 @@ class DashboardScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.paddingMedium),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(AppDimensions.paddingMedium),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(
-                    AppDimensions.radiusLarge,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.radiusLarge,
+                    ),
                   ),
+                  child:
+                  Icon(icon, size: AppDimensions.iconLarge, color: color),
                 ),
-                child: Icon(icon, size: AppDimensions.iconLarge, color: color),
-              ),
-              const SizedBox(height: AppDimensions.spacing12),
-              Text(
-                title,
-                style: AppTextStyles.titleMedium.copyWith(
-                  fontWeight: FontWeight.bold,
+                const SizedBox(height: AppDimensions.spacing12),
+                Text(
+                  title,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppDimensions.spacing4),
-              Text(
-                subtitle,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.onSurfaceVariant,
+                const SizedBox(height: AppDimensions.spacing4),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
