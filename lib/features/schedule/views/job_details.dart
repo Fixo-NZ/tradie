@@ -7,7 +7,7 @@ import 'package:tradie/features/schedule/widgets/edit_event_sheet.dart';
 import 'package:tradie/features/schedule/widgets/show_cancel_confirmation.dart';
 
 class JobDetailsScreen extends ConsumerWidget {
-  final int eventId; // pass only the ID now
+  final int eventId;
 
   const JobDetailsScreen({super.key, required this.eventId});
 
@@ -56,6 +56,7 @@ class JobDetailsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
+                    // ignore: deprecated_member_use
                     color: Colors.grey.withOpacity(0.2),
                     blurRadius: 5,
                     offset: const Offset(0, 2),

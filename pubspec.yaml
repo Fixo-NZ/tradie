@@ -58,7 +58,7 @@ dependencies:
   intl: ^0.20.2
 
   # websocket
-  web_socket_channel: ^3.0.3
+  pusher_channels_flutter: ^2.4.0
 
 dev_dependencies:
   flutter_test:

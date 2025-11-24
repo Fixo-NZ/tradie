@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tradie/features/schedule/models/schedule_model.dart';
 import 'package:tradie/features/schedule/repositories/schedule_repository.dart';
+import 'package:tradie/features/schedule/services/pusher_service.dart';
 import '../../../core/network/api_result.dart';
-import '../services/websocket_service.dart';
 
 class ScheduleState {
   final bool isLoading;
@@ -34,7 +34,7 @@ class ScheduleViewModel extends StateNotifier<ScheduleState> {
 
   ScheduleViewModel(this._repository) : super(const ScheduleState()) {
     loadSchedules();
-    _initWebSocket();
+    _initRealtime();
   }
 
   Future<void> loadSchedules() async {
@@ -54,21 +54,47 @@ class ScheduleViewModel extends StateNotifier<ScheduleState> {
     }
   }
 
-  Future<void> cancelEvent(int id) async {
-    state = state.copyWith(isLoading: true);
+// Future<void> cancelEvent(int id) async {
+//   state = state.copyWith(isLoading: true);
 
+//   final result = await _repository.cancelSchedule(id);
+//   switch (result) {
+//     case Success<ScheduleModel>():
+//       final updatedList = state.schedules.where((event) => event.id != id).toList();
+//       state = state.copyWith(isLoading: false, schedules: updatedList);
+//       break;
+
+//     case Failure<ScheduleModel>():
+//       state = state.copyWith(isLoading: false, error: result.message);
+//       break;
+//   }
+// }
+//   print("🟢 FINAL state.schedules: ${state.schedules.map((e) => e.id).toList()}");
+// }
+
+Future<void> cancelEvent(int id) async {
+  state = state.copyWith(isLoading: true);
+
+  try {
     final result = await _repository.cancelSchedule(id);
 
-    switch (result) {
-      case Success<ScheduleModel>():
-        final updatedList = state.schedules
-            .where((event) => event.id != id)
-            .toList();
-        state = state.copyWith(isLoading: false, schedules: updatedList);
-      case Failure<ScheduleModel>():
-        state = state.copyWith(isLoading: false, error: result.message);
-    }
+    // DEBUG: log the result
+    print('🔴 CANCEL RESPONSE: $result');
+
+    // If the call didn’t throw, remove locally
+    final updatedList = state.schedules.where((event) => event.id != id).toList();
+    state = state.copyWith(isLoading: false, schedules: updatedList);
+
+    print('🟢 FINAL state.schedules: ${state.schedules.map((e) => e.id).toList()}');
+  } catch (e) {
+    print('❌ DELETE FAILED: $e');
+    state = state.copyWith(isLoading: false, error: e.toString());
   }
+}
+
+
+
+
 
   Future<void> rescheduleEvent({
     required int id,
@@ -96,35 +122,45 @@ class ScheduleViewModel extends StateNotifier<ScheduleState> {
     }
   }
 
-  /// Initialize Pusher for real-time updates
-  void _initWebSocket() {
-    WebSocketService.init(
-      url:
-          'ws://127.0.0.1:8080/app/schedules', // Update with your Laravel WebSocket URL
-      onMessage: (jsonData) {
-        if (jsonData['schedule'] != null) {
-          final updatedSchedule = ScheduleModel.fromJson(jsonData['schedule']);
+  void _initRealtime() {
+  PusherService.init(
+    apiKey: "o3kuufyyhwwte7mwu5fo",
+    channel: "schedules",
+    onEvent: (jsonData) {
+      final eventName = jsonData['event'];
 
-          final updatedList = state.schedules.map((schedule) {
-            return schedule.id == updatedSchedule.id
-                ? updatedSchedule
-                : schedule;
-          }).toList();
+      if (eventName == 'schedule.updated' && jsonData['schedule'] != null) {
+        // Update or add the schedule
+        final updatedSchedule = ScheduleModel.fromJson(jsonData['schedule']);
 
-          if (!updatedList.any((s) => s.id == updatedSchedule.id)) {
-            updatedList.add(updatedSchedule);
-          }
+        final updatedList = state.schedules.map((event) {
+          return event.id == updatedSchedule.id ? updatedSchedule : event;
+        }).toList();
 
-          state = state.copyWith(schedules: updatedList);
+        if (!updatedList.any((s) => s.id == updatedSchedule.id)) {
+          updatedList.add(updatedSchedule);
         }
-      },
-    );
-  }
 
-  /// Dispose Pusher when not needed
+        state = state.copyWith(schedules: updatedList);
+      }
+
+      if (eventName == 'schedule.deleted' && jsonData['scheduleId'] != null) {
+        // Remove the schedule
+        final idToRemove = jsonData['scheduleId'] as int;
+        final updatedList =
+            state.schedules.where((event) => event.id != idToRemove).toList();
+
+        state = state.copyWith(schedules: updatedList);
+      }
+    },
+  );
+}
+
+
+
   @override
   void dispose() {
-    WebSocketService.disconnect();
+    PusherService.disconnect(channel: "schedules");
     super.dispose();
   }
 }
