@@ -13,11 +13,26 @@ final doneProvider = StateNotifierProvider<DoneViewModel, DoneState>(
   (ref) => DoneViewModel(),
 );
 
-class DoneScreen extends ConsumerWidget {
+class DoneScreen extends ConsumerStatefulWidget {
   const DoneScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DoneScreen> createState() => _DoneScreenState();
+}
+
+class _DoneScreenState extends ConsumerState<DoneScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // ✅ Automatically fetch profile with slight delay for smoother transition
+    Future.microtask(() async {
+      await Future.delayed(const Duration(milliseconds: 500));
+      ref.read(doneProvider.notifier).loadProfile();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final viewModel = ref.read(doneProvider.notifier);
     final state = ref.watch(doneProvider);
 
@@ -32,7 +47,6 @@ class DoneScreen extends ConsumerWidget {
           style: AppTextStyles.appBarTitle.copyWith(color: Colors.black),
         ),
       ),
-
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ContinueFloatingButton(
         onPressed: () {
@@ -42,10 +56,10 @@ class DoneScreen extends ConsumerWidget {
         },
         backgroundColor: AppColors.tradieBlue,
       ),
-
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppDimensions.paddingLarge),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -58,29 +72,28 @@ class DoneScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // ✅ Profile Picture (fixed)
+              // ✅ Profile Picture (fixed URL handling)
               Center(
                 child: Builder(
                   builder: (context) {
                     final avatarPath = state.avatar ?? '';
-
-                    // ✅ Correct fix for Laravel response
                     String? imageUrl;
+
                     if (avatarPath.isNotEmpty) {
                       if (avatarPath.startsWith('http')) {
-                        // full URL already
+                        // Already full URL
                         imageUrl = avatarPath;
                       } else if (avatarPath.contains('storage/')) {
-                        // Laravel storage relative path
+                        // Partial storage path
                         imageUrl =
-                            '${ApiConstants.baseUrl}/${avatarPath.replaceFirst(RegExp(r"^/"), "")}';
+                            '${ApiConstants.publicBaseUrl}/${avatarPath.replaceFirst(RegExp(r"^/"), "")}';
                       } else {
-                        // plain filename (no storage/ prefix)
-                        imageUrl = '${ApiConstants.baseUrl}/storage/$avatarPath';
+                        // Just filename
+                        imageUrl =
+                            '${ApiConstants.publicBaseUrl}/storage/$avatarPath';
                       }
                     }
 
-                    // cache-buster to ensure new uploads refresh instantly
                     final cacheBusted = imageUrl != null
                         ? '$imageUrl?t=${DateTime.now().millisecondsSinceEpoch}'
                         : null;
@@ -93,7 +106,8 @@ class DoneScreen extends ConsumerWidget {
                           : const AssetImage('assets/images/default_avatar.png')
                               as ImageProvider,
                       child: cacheBusted == null
-                          ? const Icon(Icons.person, size: 50, color: Colors.white70)
+                          ? const Icon(Icons.person,
+                              size: 50, color: Colors.white70)
                           : null,
                     );
                   },
@@ -147,9 +161,11 @@ class DoneScreen extends ConsumerWidget {
                     backgroundColor: AppColors.tradieBlue,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusMedium),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: AppDimensions.spacing16),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: AppDimensions.spacing16),
                   ),
                   child: Text(
                     'Edit Profile',
@@ -198,7 +214,8 @@ class DoneScreen extends ConsumerWidget {
                         vertical: AppDimensions.spacing8),
                     decoration: BoxDecoration(
                       color: const Color.fromRGBO(9, 12, 155, 0.1),
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLarge),
                     ),
                     child: Text(
                       'About Me',
@@ -214,7 +231,8 @@ class DoneScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(AppDimensions.spacing16),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLarge),
                     ),
                     child: Text(
                       state.bio ?? 'No bio available',
@@ -238,7 +256,8 @@ class DoneScreen extends ConsumerWidget {
                         vertical: AppDimensions.spacing8),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLarge),
                     ),
                     child: Text(
                       'My Skills',
@@ -255,7 +274,9 @@ class DoneScreen extends ConsumerWidget {
                     runSpacing: AppDimensions.spacing8,
                     children: state.skills.isEmpty
                         ? [const Text('No skills added yet')]
-                        : state.skills.map((skill) => _SkillChip(label: skill)).toList(),
+                        : state.skills
+                            .map((skill) => _SkillChip(label: skill))
+                            .toList(),
                   ),
                 ],
               ),
@@ -329,7 +350,8 @@ class _SkillChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppDimensions.spacing12, vertical: AppDimensions.spacing8),
+          horizontal: AppDimensions.spacing12,
+          vertical: AppDimensions.spacing8),
       decoration: BoxDecoration(
         color: const Color.fromRGBO(9, 12, 155, 0.1),
         borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
