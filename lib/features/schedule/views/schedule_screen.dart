@@ -55,10 +55,25 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
           onPressed: () => context.pop(),
         ),
       ),
-      body: Padding(
+      body: Container(
         padding: const EdgeInsets.all(20),
+        color: Colors.white,
         child: Column(
           children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFCEDBF1)
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.notifications_outlined, size: 24, color: Colors.black,),
+                  onPressed: () {}, 
+                ),
+              ),
+            ),
+
             if (scheduleState.isLoading) const LinearProgressIndicator(),
 
             /// Calendar
