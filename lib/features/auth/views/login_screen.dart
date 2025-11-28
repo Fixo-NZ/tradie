@@ -46,11 +46,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authViewModelProvider);
     final authViewModel = ref.read(authViewModelProvider.notifier);
 
+    // --- FIX IS HERE ---
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
-      if (next.isAuthenticated) {
+      // OLD: if (next.isAuthenticated)
+      // NEW: Check the status enum
+      if (next.status == AppStatus.authenticated) {
         context.go('/dashboard');
       }
     });
+    // --- END OF FIX ---
 
     final generalError = authState.error != null &&
         (authState.fieldErrors == null || authState.fieldErrors!.isEmpty);
@@ -159,17 +163,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: AppDimensions.spacing8),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Checkbox(
-                                value: _rememberMe,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _rememberMe = value ?? false;
-                                  });
-                                },
-                              ),
-                              const Text("Remember Me"),
-                              const Spacer(),
                               TextButton(
                                 onPressed: () {
                                   context.go('/reset-password');
@@ -201,6 +196,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
 
+                // --- Bottom Section (Button) ---
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(AppDimensions.paddingLarge),

@@ -4,32 +4,40 @@ import '../models/auth_models.dart';
 import '../repositories/auth_repository.dart';
 import '../../../core/network/api_result.dart';
 
-// Auth state
+// --- 1. DEFINE THE APP STATUS ---
+enum AppStatus {
+  initializing, // App is starting, checking for a token
+  unauthenticated, // User is logged out
+  authenticated, // User is logged in
+}
+
+// --- 2. UPDATE AuthState ---
 class AuthState {
-  final bool isLoading;
-  final bool isAuthenticated;
+  final AppStatus status; // Use the enum instead of bool
+  final bool isLoading; // This is for the login button spinner
   final TradieModel? user;
   final String? error;
   final Map<String, List<String>>? fieldErrors;
 
   const AuthState({
+    this.status = AppStatus.initializing, // Start as initializing
     this.isLoading = false,
-    this.isAuthenticated = false,
     this.user,
     this.error,
     this.fieldErrors,
   });
 
+  // Remove `isAuthenticated` from copyWith
   AuthState copyWith({
+    AppStatus? status,
     bool? isLoading,
-    bool? isAuthenticated,
     TradieModel? user,
     String? error,
     Map<String, List<String>>? fieldErrors,
   }) {
     return AuthState(
+      status: status ?? this.status,
       isLoading: isLoading ?? this.isLoading,
-      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       user: user ?? this.user,
       error: error,
       fieldErrors: fieldErrors,
@@ -37,21 +45,28 @@ class AuthState {
   }
 }
 
+// --- 3. UPDATE AuthViewModel ---
 class AuthViewModel extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
 
   AuthViewModel(this._authRepository) : super(const AuthState()) {
-    _checkAuthStatus();
+    _checkAuthStatus(); // This will run on app start
   }
 
+  // This will change status from initializing -> authenticated/unauthenticated
   Future<void> _checkAuthStatus() async {
     final isLoggedIn = await _authRepository.isLoggedIn();
-    state = state.copyWith(isAuthenticated: isLoggedIn);
+    if (isLoggedIn) {
+      // In a real app, you'd fetch the user data here.
+      // For now, just set as authenticated.
+      state = state.copyWith(status: AppStatus.authenticated);
+    } else {
+      state = state.copyWith(status: AppStatus.unauthenticated);
+    }
   }
 
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null, fieldErrors: null);
-
     final request = LoginRequest(email: email, password: password);
     final result = await _authRepository.login(request);
 
@@ -59,7 +74,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
       case Success<AuthResponse>():
         state = state.copyWith(
           isLoading: false,
-          isAuthenticated: true,
+          status: AppStatus.authenticated, // SET STATUS
           user: result.data.user,
         );
         return true;
@@ -68,6 +83,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
           isLoading: false,
           error: result.message,
           fieldErrors: result.errors,
+          // Status remains unauthenticated
         );
         return false;
     }
@@ -83,7 +99,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
     String? phone,
   }) async {
     state = state.copyWith(isLoading: true, error: null, fieldErrors: null);
-
     final request = RegisterRequest(
       firstName: firstName,
       lastName: lastName,
@@ -93,14 +108,13 @@ class AuthViewModel extends StateNotifier<AuthState> {
       passwordConfirmation: passwordConfirmation,
       phone: phone,
     );
-
     final result = await _authRepository.register(request);
 
     switch (result) {
       case Success<AuthResponse>():
         state = state.copyWith(
           isLoading: false,
-          isAuthenticated: true,
+          status: AppStatus.authenticated, // SET STATUS
           user: result.data.user,
         );
         return true;
@@ -117,7 +131,8 @@ class AuthViewModel extends StateNotifier<AuthState> {
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
     await _authRepository.logout();
-    state = const AuthState();
+    // Reset the state to a fresh, unauthenticated state
+    state = const AuthState(status: AppStatus.unauthenticated);
   }
 
   void clearError() {
@@ -125,6 +140,7 @@ class AuthViewModel extends StateNotifier<AuthState> {
   }
 }
 
+// Providers (no change here)
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
 });
