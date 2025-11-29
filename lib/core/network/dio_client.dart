@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/api_constants.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DioClient {
   static DioClient? _instance;
@@ -60,3 +61,8 @@ class DioClient {
     return await _storage.read(key: 'access_token');
   }
 }
+
+final dioProvider = Provider<Dio>((ref) => DioClient.instance.dio);
+
+// Optional: provider for the DioClient itself
+final dioClientProvider = Provider<DioClient>((ref) => DioClient.instance);
