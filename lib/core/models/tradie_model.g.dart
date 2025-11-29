@@ -9,8 +9,8 @@ part of 'tradie_model.dart';
 TradieModel _$TradieModelFromJson(Map<String, dynamic> json) => TradieModel(
   id: (json['id'] as num?)?.toInt(),
   firstName: json['first_name'] as String,
-  middleName: json['middle_name'] as String?,
   lastName: json['last_name'] as String,
+  middleName: json['middle_name'] as String?,
   email: json['email'] as String,
   phone: json['phone'] as String?,
   avatar: json['avatar'] as String?,
@@ -40,8 +40,8 @@ Map<String, dynamic> _$TradieModelToJson(TradieModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'first_name': instance.firstName,
-      'middle_name': instance.middleName,
       'last_name': instance.lastName,
+      'middle_name': instance.middleName,
       'email': instance.email,
       'phone': instance.phone,
       'avatar': instance.avatar,

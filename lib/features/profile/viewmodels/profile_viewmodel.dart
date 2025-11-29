@@ -3,17 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/profile_model.dart';
 import '../repositories/profile_repositories.dart';
 
-
 class ProfileState {
   final bool isLoading;
   final ProfileModel? profile;
   final String? errorMessage;
 
-  const ProfileState({
-    this.isLoading = false,
-    this.profile,
-    this.errorMessage,
-  });
+  const ProfileState({this.isLoading = false, this.profile, this.errorMessage});
 
   ProfileState copyWith({
     bool? isLoading,
@@ -38,9 +33,13 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final profile = await _repo.fetchProfile();
-      state = state.copyWith(isLoading: false, profile: profile, errorMessage: null);
+      state = state.copyWith(
+        isLoading: false,
+        profile: profile,
+        errorMessage: null,
+      );
       return profile;
-    } catch (e, st) {
+    } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return null;
     }
@@ -51,7 +50,11 @@ class ProfileViewModel extends StateNotifier<ProfileState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final updated = await _repo.updateProfile(data);
-      state = state.copyWith(isLoading: false, profile: updated, errorMessage: null);
+      state = state.copyWith(
+        isLoading: false,
+        profile: updated,
+        errorMessage: null,
+      );
       return true;
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
@@ -66,7 +69,7 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 });
 
 final profileViewModelProvider =
-StateNotifierProvider<ProfileViewModel, ProfileState>((ref) {
-  final repo = ref.watch(profileRepositoryProvider);
-  return ProfileViewModel(repo);
-});
+    StateNotifierProvider<ProfileViewModel, ProfileState>((ref) {
+      final repo = ref.watch(profileRepositoryProvider);
+      return ProfileViewModel(repo);
+    });

@@ -7,10 +7,10 @@ class TradieModel {
   final int? id;
   @JsonKey(name: 'first_name')
   final String firstName;
-  @JsonKey(name: 'middle_name')
-  final String? middleName;
   @JsonKey(name: 'last_name')
   final String lastName;
+  @JsonKey(name: 'middle_name')
+  final String? middleName;
   final String email;
   final String? phone;
   final String? avatar;
@@ -44,8 +44,8 @@ class TradieModel {
   const TradieModel({
     this.id,
     required this.firstName,
-    this.middleName,
     required this.lastName,
+    required this.middleName,
     required this.email,
     this.phone,
     this.avatar,
@@ -77,8 +77,8 @@ class TradieModel {
   TradieModel copyWith({
     int? id,
     String? firstName,
-    String? middleName,
     String? lastName,
+    String? middleName,
     String? email,
     String? phone,
     String? avatar,
@@ -102,8 +102,8 @@ class TradieModel {
     return TradieModel(
       id: id ?? this.id,
       firstName: firstName ?? this.firstName,
-      middleName: middleName ?? this.middleName,
       lastName: lastName ?? this.lastName,
+      middleName: middleName ?? this.middleName,
       email: email ?? this.email,
       phone: phone ?? this.phone,
       avatar: avatar ?? this.avatar,
