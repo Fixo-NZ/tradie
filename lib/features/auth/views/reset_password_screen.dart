@@ -78,15 +78,17 @@ class __EnterEmailViewState extends ConsumerState<_EnterEmailView> {
     }
   }
 
-  String? _validateEmailOrPhone(String? value) {
+  // --- UPDATED: Email Only Validator ---
+  String? _validateEmailOnly(String? value) {
     if (value == null || value.isEmpty) {
-      return "Please enter your Email/Number";
+      return "Please enter your Email Address";
     }
     final input = value.trim();
-    final phoneRegex = RegExp(r'^\d{11}$');
+    // Standard email regex
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!phoneRegex.hasMatch(input) && !emailRegex.hasMatch(input)) {
-      return "Enter a valid Email or 11-digit Phone Number";
+
+    if (!emailRegex.hasMatch(input)) {
+      return "Please enter a valid Email Address";
     }
     return null;
   }
@@ -118,12 +120,10 @@ class __EnterEmailViewState extends ConsumerState<_EnterEmailView> {
               children: [
                 Expanded(
                   flex: 1,
-                  // --- FIX: Added SingleChildScrollView ---
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Adding padding in case it's at the very top
                         const SizedBox(height: 10),
                         Image.asset("assets/logo.png", height: 75),
                         const SizedBox(height: 20),
@@ -132,13 +132,13 @@ class __EnterEmailViewState extends ConsumerState<_EnterEmailView> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Text(
-                            "Enter the Email/Number Registered to the Forgotten account",
+                            // --- UPDATED TEXT ---
+                            "Enter the Email Address registered to your account",
                             textAlign: TextAlign.center,
                             style: AppTextStyles.bodyLarge
                                 .copyWith(color: AppColors.onSurfaceVariant),
                           ),
                         ),
-                        // Adding padding in case it's at the very bottom
                         const SizedBox(height: 10),
                       ],
                     ),
@@ -154,14 +154,17 @@ class __EnterEmailViewState extends ConsumerState<_EnterEmailView> {
                       children: [
                         TextFormField(
                           controller: _emailController,
+                          // --- UPDATED KEYBOARD & DECORATION ---
+                          keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            labelText: "Email/Number",
-                            hintText: "example@email.com / 09123456789",
+                            labelText: "Email Address",
+                            hintText: "example@email.com",
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
+                            prefixIcon: const Icon(Icons.email_outlined),
                           ),
-                          validator: _validateEmailOrPhone,
+                          validator: _validateEmailOnly,
                         ),
                       ],
                     ),

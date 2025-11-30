@@ -53,17 +53,25 @@ class AuthViewModel extends StateNotifier<AuthState> {
     _checkAuthStatus(); // This will run on app start
   }
 
-  // This will change status from initializing -> authenticated/unauthenticated
+  // --- THIS IS THE FIX ---
+  // We force this to take at least 2 seconds so the animation can play.
   Future<void> _checkAuthStatus() async {
-    final isLoggedIn = await _authRepository.isLoggedIn();
+    // Run both the check AND the timer at the same time
+    final results = await Future.wait([
+      _authRepository.isLoggedIn(),            // Task 1: Check token (Fast)
+      Future.delayed(const Duration(seconds: 2)), // Task 2: Wait 2 secs (Slow)
+    ]);
+
+    // results[0] holds the boolean from _authRepository.isLoggedIn()
+    final isLoggedIn = results[0] as bool;
+
     if (isLoggedIn) {
-      // In a real app, you'd fetch the user data here.
-      // For now, just set as authenticated.
       state = state.copyWith(status: AppStatus.authenticated);
     } else {
       state = state.copyWith(status: AppStatus.unauthenticated);
     }
   }
+  // --- END OF FIX ---
 
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null, fieldErrors: null);

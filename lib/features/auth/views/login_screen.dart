@@ -46,15 +46,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authViewModelProvider);
     final authViewModel = ref.read(authViewModelProvider.notifier);
 
-    // --- FIX IS HERE ---
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
-      // OLD: if (next.isAuthenticated)
-      // NEW: Check the status enum
       if (next.status == AppStatus.authenticated) {
         context.go('/dashboard');
       }
     });
-    // --- END OF FIX ---
 
     final generalError = authState.error != null &&
         (authState.fieldErrors == null || authState.fieldErrors!.isEmpty);
@@ -78,35 +74,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             key: _formKey,
             child: Column(
               children: [
-                // --- Top Section ---
-                SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 10),
-                      Image.asset(
-                        "assets/logo.png",
-                        height: 75,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        "FIXO",
-                        style: AppTextStyles.displaySmall
-                            .copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        "Enter your credentials to get started.",
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyLarge
-                            .copyWith(color: AppColors.onSurfaceVariant),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
+                // --- Top Section (1/3 of screen) ---
+                Expanded(
+                  flex: 1,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 10),
+                        Image.asset(
+                          "assets/logo.png",
+                          height: 75,
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          "FIXO",
+                          style: AppTextStyles.displaySmall
+                              .copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          "Enter your credentials to get started.",
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyLarge
+                              .copyWith(color: AppColors.onSurfaceVariant),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
                   ),
                 ),
 
-                // --- Middle Section (Text Fields) ---
+                // --- Middle Section (1/3 of screen) ---
                 Expanded(
                   flex: 1,
                   child: SingleChildScrollView(
@@ -114,7 +113,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: AppDimensions.paddingLarge),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
+                        // Align to center to match the ResetPassword layout
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(height: 10),
                           TextFormField(
@@ -196,45 +196,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
 
-                // --- Bottom Section (Button) ---
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: AppDimensions.buttonHeight,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
+                // --- Bottom Section (1/3 of screen) ---
+                Expanded(
+                  flex: 1,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.paddingLarge),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: AppDimensions.buttonHeight,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
                           ),
-                        ),
-                        onPressed: authState.isLoading
-                            ? null
-                            : () {
-                          if (_formKey.currentState!.validate()) {
-                            authViewModel.clearError();
-                            authViewModel.login(
-                              _emailController.text.trim(),
-                              _passwordController.text,
-                            );
-                          }
-                        },
-                        child: authState.isLoading
-                            ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white),
+                          onPressed: authState.isLoading
+                              ? null
+                              : () {
+                            if (_formKey.currentState!.validate()) {
+                              authViewModel.clearError();
+                              authViewModel.login(
+                                _emailController.text.trim(),
+                                _passwordController.text,
+                              );
+                            }
+                          },
+                          child: authState.isLoading
+                              ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white),
+                            ),
+                          )
+                              : const Text(
+                            "Login",
+                            style: TextStyle(
+                                fontSize: 16, color: Colors.white),
                           ),
-                        )
-                            : const Text(
-                          "Login",
-                          style: TextStyle(
-                              fontSize: 16, color: Colors.white),
                         ),
                       ),
                     ),
