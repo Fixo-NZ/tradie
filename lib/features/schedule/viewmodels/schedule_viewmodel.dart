@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tradie/features/schedule/models/schedule_model.dart';
 import 'package:tradie/features/schedule/repositories/schedule_repository.dart';
-import 'package:tradie/features/schedule/services/pusher_service.dart';
+import 'package:tradie/features/schedule/services/echo_service.dart';
 import '../../../core/network/api_result.dart';
 
 class ScheduleState {
@@ -79,15 +79,21 @@ Future<void> cancelEvent(int id) async {
     final result = await _repository.cancelSchedule(id);
 
     // DEBUG: log the result
-    print('🔴 CANCEL RESPONSE: $result');
+    if (kDebugMode) {
+      print('🔴 CANCEL RESPONSE: $result');
+    }
 
     // If the call didn’t throw, remove locally
     final updatedList = state.schedules.where((event) => event.id != id).toList();
     state = state.copyWith(isLoading: false, schedules: updatedList);
 
-    print('🟢 FINAL state.schedules: ${state.schedules.map((e) => e.id).toList()}');
+    if (kDebugMode) {
+      print('🟢 FINAL state.schedules: ${state.schedules.map((e) => e.id).toList()}');
+    }
   } catch (e) {
-    print('❌ DELETE FAILED: $e');
+    if (kDebugMode) {
+      print('❌ DELETE FAILED: $e');
+    }
     state = state.copyWith(isLoading: false, error: e.toString());
   }
 }
@@ -123,44 +129,94 @@ Future<void> cancelEvent(int id) async {
   }
 
   void _initRealtime() {
-  PusherService.init(
-    apiKey: "o3kuufyyhwwte7mwu5fo",
-    channel: "schedules",
-    onEvent: (jsonData) {
-      final eventName = jsonData['event'];
+    LaravelEchoService.init(
+      channel: "schedules",
+      onEvent: (jsonData) {
+        final eventName = jsonData['event'];
+        debugPrint('📡 Received real-time event: $eventName');
 
-      if (eventName == 'schedule.updated' && jsonData['schedule'] != null) {
-        // Update or add the schedule
+        switch (eventName) {
+          case 'schedule.created':
+            _handleScheduleCreated(jsonData);
+            break;
+          case 'schedule.updated':
+            _handleScheduleUpdated(jsonData);
+            break;
+          case 'schedule.deleted':
+            _handleScheduleDeleted(jsonData);
+            break;
+          case 'schedule.rescheduled':
+            _handleScheduleRescheduled(jsonData);
+            break;
+          default:
+            debugPrint('🤷 Unknown event type: $eventName');
+        }
+      },
+      onConnectionStateChange: (connectionState) {
+        debugPrint('🔄 Laravel Echo connection state: $connectionState');
+        // You could update UI to show connection status
+      },
+    );
+  }
+
+  void _handleScheduleCreated(Map<String, dynamic> jsonData) {
+    if (jsonData['schedule'] != null) {
+      try {
+        final newSchedule = ScheduleModel.fromJson(jsonData['schedule']);
+        final updatedList = [...state.schedules, newSchedule];
+        state = state.copyWith(schedules: updatedList);
+        debugPrint('✅ Schedule created: ${newSchedule.id}');
+      } catch (e) {
+        debugPrint('❌ Error handling schedule created: $e');
+      }
+    }
+  }
+
+  void _handleScheduleUpdated(Map<String, dynamic> jsonData) {
+    if (jsonData['schedule'] != null) {
+      try {
         final updatedSchedule = ScheduleModel.fromJson(jsonData['schedule']);
-
         final updatedList = state.schedules.map((event) {
           return event.id == updatedSchedule.id ? updatedSchedule : event;
         }).toList();
 
+        // Add if not exists (in case we missed the created event)
         if (!updatedList.any((s) => s.id == updatedSchedule.id)) {
           updatedList.add(updatedSchedule);
         }
 
         state = state.copyWith(schedules: updatedList);
+        debugPrint('✅ Schedule updated: ${updatedSchedule.id}');
+      } catch (e) {
+        debugPrint('❌ Error handling schedule updated: $e');
       }
+    }
+  }
 
-      if (eventName == 'schedule.deleted' && jsonData['scheduleId'] != null) {
-        // Remove the schedule
-        final idToRemove = jsonData['scheduleId'] as int;
-        final updatedList =
-            state.schedules.where((event) => event.id != idToRemove).toList();
-
+  void _handleScheduleDeleted(Map<String, dynamic> jsonData) {
+    final scheduleId = jsonData['scheduleId'] ?? jsonData['id'];
+    if (scheduleId != null) {
+      try {
+        final idToRemove = scheduleId is int ? scheduleId : int.parse(scheduleId.toString());
+        final updatedList = state.schedules.where((event) => event.id != idToRemove).toList();
         state = state.copyWith(schedules: updatedList);
+        debugPrint('✅ Schedule deleted: $idToRemove');
+      } catch (e) {
+        debugPrint('❌ Error handling schedule deleted: $e');
       }
-    },
-  );
-}
+    }
+  }
+
+  void _handleScheduleRescheduled(Map<String, dynamic> jsonData) {
+    // Handle rescheduled events (same as updated for now)
+    _handleScheduleUpdated(jsonData);
+  }
 
 
 
   @override
   void dispose() {
-    PusherService.disconnect(channel: "schedules");
+    LaravelEchoService.disconnect(channel: "schedules");
     super.dispose();
   }
 }
