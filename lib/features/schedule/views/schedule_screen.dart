@@ -33,6 +33,16 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
   Widget build(BuildContext context) {
     final scheduleState = ref.watch(scheduleViewModelProvider);
 
+    // Show loading screen while data is being fetched
+    if (scheduleState.isLoading && scheduleState.schedules.isEmpty) {
+      return _buildLoadingScreen();
+    }
+
+    // Show error screen if there's an error and no data
+    if (scheduleState.error != null && scheduleState.schedules.isEmpty) {
+      return _buildErrorScreen(scheduleState.error!);
+    }
+
     // Group schedules by date
     Map<DateTime, List<ScheduleModel>> events = {};
     for (var appt in scheduleState.schedules) {
@@ -47,6 +57,136 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     // Events for selected day
     final selectedEvents = events[_selectedDay] ?? [];
 
+    return _buildScheduleScreen(scheduleState, events, selectedEvents);
+  }
+
+  Widget _buildLoadingScreen() {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Calendar icon with loading animation
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFFCEDBF1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.calendar_month,
+                size: 40,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            // Loading indicator
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3066BE)),
+            ),
+            const SizedBox(height: 16),
+            
+            // Loading text
+            Text(
+              'Loading your schedules...',
+              style: AppTextStyles.bodyLarge.copyWith(
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Please wait while we fetch your schedules',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen(String error) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Error icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  Icons.error_outline,
+                  size: 40,
+                  color: Colors.red[400],
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              Text(
+                'Oops! Something went wrong',
+                style: AppTextStyles.headlineSmall.copyWith(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                error,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              
+              // Retry button
+              ElevatedButton.icon(
+                onPressed: () {
+                  ref.read(scheduleViewModelProvider.notifier).loadSchedules();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try Again'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3066BE),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Back button
+              TextButton(
+                onPressed: () => context.pop(),
+                child: Text(
+                  'Go Back',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScheduleScreen(ScheduleState scheduleState, Map<DateTime, List<ScheduleModel>> events, List<ScheduleModel> selectedEvents) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Schedules', style: AppTextStyles.appBarTitle),
@@ -60,7 +200,9 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
         color: Colors.white,
         child: Column(
           children: [
-            if (scheduleState.isLoading) const LinearProgressIndicator(),
+            // Show subtle loading indicator for refresh operations
+            if (scheduleState.isLoading && scheduleState.schedules.isNotEmpty) 
+              const LinearProgressIndicator(),
 
             Align(
               alignment: Alignment.centerRight,
@@ -231,22 +373,15 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   markerBuilder: (context, day, events) {
                     if (events.isEmpty) return const SizedBox();
 
-                    int count = events.length;
-                    int dotCount = count == 1 ? 1 : count == 2 ? 2 : 3;
-
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(dotCount, (index) {
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 1.5, vertical: 1),
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: Color.fromARGB(255, 252, 189, 52), // Your dot color
-                            shape: BoxShape.circle,
-                          ),
-                        );
-                      }),
+                    // Always show a single dot if there's at least one event
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 1),
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color.fromARGB(255, 252, 189, 52), // Your marker color
+                        shape: BoxShape.circle,
+                      ),
                     );
                   },
                 ),
