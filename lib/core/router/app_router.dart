@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tradie/features/schedule/models/schedule_model.dart';
-import 'package:tradie/features/schedule/views/job_details.dart';
+import 'package:tradie/features/schedule/views/job_details_screen.dart';
+import 'package:tradie/features/schedule/views/notifications_screen.dart';
 import 'package:tradie/features/schedule/views/schedule_screen.dart';
 import '../../features/auth/views/login_screen.dart';
 import '../../features/auth/views/register_screen.dart';
@@ -51,6 +52,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           final event = state.extra as ScheduleModel;
           return JobDetailsScreen(eventId: event.id);
         },
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
       ),
     ],
   );
