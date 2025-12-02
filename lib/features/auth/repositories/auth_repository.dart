@@ -1,4 +1,3 @@
-// lib/features/auth/repositories/auth_repository.dart
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../models/auth_models.dart';
@@ -86,16 +85,26 @@ class AuthRepository {
     }
   }
 
-  Future<ApiResult<void>> verifyPasswordResetOtp(
+  // --- UPDATED: Returns the token string instead of void ---
+  Future<ApiResult<String>> verifyPasswordResetOtp(
       String email,
       String otp,
       ) async {
     try {
-      await _dioClient.dio.post(
+      final response = await _dioClient.dio.post(
         ApiConstants.verifyPasswordResetOtpEndpoint,
-        data: {'email': email, 'otp': otp},
+        data: {
+          'email': email,
+          'otp_code': otp // Matches server expectation
+        },
       );
-      return const Success(null);
+
+      // --- FIX IS HERE ---
+      // Extract token based on your NEW PHP structure:
+      // ['data']['password_reset_token']
+      final token = response.data['data']['password_reset_token'];
+
+      return Success(token);
     } on DioException catch (e) {
       return _handleDioError(e);
     } catch (e) {
@@ -103,7 +112,9 @@ class AuthRepository {
     }
   }
 
+  // --- UPDATED: Accepts token, sends in header, uses correct field names ---
   Future<ApiResult<void>> setNewPassword({
+    required String token,
     required String email,
     required String password,
     required String passwordConfirmation,
@@ -113,9 +124,14 @@ class AuthRepository {
         ApiConstants.setNewPasswordEndpoint,
         data: {
           'email': email,
-          'password': password,
-          'password_confirmation': passwordConfirmation,
+          'new_password': password, // Changed key to match PHP
+          'new_password_confirmation': passwordConfirmation, // Changed key to match PHP
         },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token', // Send the token here
+          },
+        ),
       );
       return const Success(null);
     } on DioException catch (e) {

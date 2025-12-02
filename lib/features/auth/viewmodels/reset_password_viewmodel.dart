@@ -15,12 +15,14 @@ class ResetPasswordState {
   final String? error;
   final ResetPasswordStep step;
   final String email;
+  final String? token;
 
   const ResetPasswordState({
     this.isLoading = false,
     this.error,
     this.step = ResetPasswordStep.enterEmail,
     this.email = '',
+    this.token,
   });
 
   ResetPasswordState copyWith({
@@ -28,12 +30,14 @@ class ResetPasswordState {
     String? error,
     ResetPasswordStep? step,
     String? email,
+    String? token,
   }) {
     return ResetPasswordState(
       isLoading: isLoading ?? this.isLoading,
       error: error,
       step: step ?? this.step,
       email: email ?? this.email,
+      token: token ?? this.token,
     );
   }
 }
@@ -70,10 +74,11 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
     );
 
     switch (result) {
-      case Success():
+      case Success(data: final token):
         state = state.copyWith(
           isLoading: false,
           step: ResetPasswordStep.enterNewPassword,
+          token: token,
         );
       case Failure():
         state = state.copyWith(isLoading: false, error: result.message);
@@ -82,9 +87,17 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
 
   Future<void> setNewPassword(
       String password, String passwordConfirmation) async {
+
+    // Safety check for token
+    if (state.token == null) {
+      state = state.copyWith(error: "Session expired. Please verify OTP again.");
+      return;
+    }
+
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await _authRepository.setNewPassword(
+      token: state.token!,
       email: state.email,
       password: password,
       passwordConfirmation: passwordConfirmation,
