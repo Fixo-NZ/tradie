@@ -20,14 +20,53 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
   TimeOfDay? startTime;
   TimeOfDay? endTime;
 
+  // Store original values for comparison
+  late DateTime originalDate;
+  late TimeOfDay originalStartTime;
+  late TimeOfDay originalEndTime;
+
   @override
   void initState() {
     super.initState();
     _eventController = TextEditingController(text: widget.event.title);
     _noteController = TextEditingController(text: widget.event.description);
+    
+    // Initialize current values
     selectedDate = widget.event.startDate;
     startTime = TimeOfDay.fromDateTime(widget.event.startDate);
     endTime = TimeOfDay.fromDateTime(widget.event.endDate);
+    
+    // Store original values
+    originalDate = widget.event.startDate;
+    originalStartTime = TimeOfDay.fromDateTime(widget.event.startDate);
+    originalEndTime = TimeOfDay.fromDateTime(widget.event.endDate);
+  }
+
+  /// Check if any date or time values have changed from original
+  bool get hasChanges {
+    if (selectedDate == null || startTime == null || endTime == null) {
+      return false;
+    }
+
+    // Compare dates
+    final currentDate = DateTime(selectedDate!.year, selectedDate!.month, selectedDate!.day);
+    final origDate = DateTime(originalDate.year, originalDate.month, originalDate.day);
+    
+    if (!currentDate.isAtSameMomentAs(origDate)) {
+      return true;
+    }
+
+    // Compare start time
+    if (startTime!.hour != originalStartTime.hour || startTime!.minute != originalStartTime.minute) {
+      return true;
+    }
+
+    // Compare end time
+    if (endTime!.hour != originalEndTime.hour || endTime!.minute != originalEndTime.minute) {
+      return true;
+    }
+
+    return false;
   }
 
   void showMessageDialog(String message) {
@@ -117,7 +156,11 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
                   firstDate: DateTime(2000),
                   lastDate: DateTime(2100),
                 );
-                if (picked != null) setState(() => selectedDate = picked);
+                if (picked != null) {
+                  setState(() {
+                    selectedDate = picked;
+                  });
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
@@ -150,7 +193,11 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
                         context: context,
                         initialTime: startTime ?? TimeOfDay.now(),
                       );
-                      if (picked != null) setState(() => startTime = picked);
+                      if (picked != null) {
+                        setState(() {
+                          startTime = picked;
+                        });
+                      }
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
@@ -176,7 +223,11 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
                         context: context,
                         initialTime: endTime ?? TimeOfDay.now(),
                       );
-                      if (picked != null) setState(() => endTime = picked);
+                      if (picked != null) {
+                        setState(() {
+                          endTime = picked;
+                        });
+                      }
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
@@ -202,8 +253,7 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () async {
-
+                onPressed: !hasChanges ? null : () async {
                   Navigator.pop(context);
                   
                   if (selectedDate == null || startTime == null || endTime == null) {
@@ -259,17 +309,18 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
                         startTime: newStart,
                         endTime: newEnd,
                       );
-            
                 },
-
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF090C9B),
+                  backgroundColor: hasChanges ? const Color(0xFF090C9B) : Colors.grey[400],
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text(
-                  "Reschedule",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                child: Text(
+                  hasChanges ? "Reschedule" : "No Changes Made",
+                  style: TextStyle(
+                    color: hasChanges ? Colors.white : Colors.grey[600],
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
