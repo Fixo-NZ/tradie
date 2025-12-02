@@ -30,20 +30,21 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
     endTime = TimeOfDay.fromDateTime(widget.event.endDate);
   }
 
-  void showSnack(String message) {
-  final rootContext = Navigator.of(context, rootNavigator: true).context;
-  ScaffoldMessenger.of(rootContext).showSnackBar(
-    SnackBar(
-      content: Text(message),
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
-      duration: const Duration(seconds: 2),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+  void showMessageDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("OK"),
+          ),
+        ],
       ),
-    ),
-  );
-}
+    );
+  }
+
 
 
   @override
@@ -206,7 +207,7 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
                   Navigator.pop(context);
                   
                   if (selectedDate == null || startTime == null || endTime == null) {
-                    showSnack("Please select date and time");
+                    showMessageDialog("Please select date and time");
                     return;
                   }
 
@@ -227,13 +228,13 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
                   );
 
                   if (newEnd.isBefore(newStart)) {
-                    showSnack("End time cannot be earlier than start time.");
+                    showMessageDialog("End time cannot be earlier than start time.");
                     return;
                   }
 
                   final duration = newEnd.difference(newStart).inMinutes;
                   if (duration < 30) {
-                    showSnack("Appointment must be at least 30 minutes long.");
+                    showMessageDialog("Appointment must be at least 30 minutes long.");
                     return;
                   }
 
@@ -246,11 +247,11 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
                   });
 
                   if (hasConflict) {
-                    showSnack("Conflicting appointment. Please choose another time.");
+                    showMessageDialog("Conflicting appointment. Please choose another time.");
                     return;
                   }
 
-                  showSnack("Schedule successfully rescheduled");
+                  showMessageDialog("Schedule successfully rescheduled");
                   
                   await ref.read(scheduleViewModelProvider.notifier).rescheduleEvent(
                         id: widget.event.id,
