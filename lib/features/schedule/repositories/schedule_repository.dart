@@ -29,24 +29,37 @@ class ScheduleRepository {
 
   Future<ApiResult<ScheduleModel>> rescheduleEvent({
     required int id,
-    required DateTime date,
     required DateTime startTime,
     required DateTime endTime,
   }) async {
     try {
+      // Format dates to match the format that works in Postman
+      final startTimeString = '${startTime.year.toString().padLeft(4, '0')}-${startTime.month.toString().padLeft(2, '0')}-${startTime.day.toString().padLeft(2, '0')} ${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}:00';
+      final endTimeString = '${endTime.year.toString().padLeft(4, '0')}-${endTime.month.toString().padLeft(2, '0')}-${endTime.day.toString().padLeft(2, '0')} ${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}:00';
+      
+      print("🚀 Sending reschedule request:");
+      print("📅 Start Time: $startTimeString");
+      print("📅 End Time: $endTimeString");
+      
       final response = await _dioClient.dio.post(
         '${ApiConstants.schedulesEndpoint}/$id/reschedule',
         data: {
-          'date': date.toIso8601String(),
-          'start_time': startTime.toIso8601String(),
-          'end_time': endTime.toIso8601String(),
+          'start_time': startTimeString,
+          'end_time': endTimeString,
         },
       );
 
-      return Success(ScheduleModel.fromJson(response.data['schedule']));
+      final updatedSchedule = ScheduleModel.fromJson(response.data['schedule']);
+      
+      // Log successful update for debugging
+      print("✅ Schedule updated successfully: ${updatedSchedule.id}");
+      
+      return Success(updatedSchedule);
     } on DioException catch (e) {
+      print("❌ Reschedule API Error: ${e.response?.data}");
       return Failure(message: 'Network error: ${e.message}');
     } catch (e) {
+      print("❌ Reschedule Error: $e");
       return Failure(message: 'Unexpected error: $e');
     }
   }
@@ -55,10 +68,17 @@ class ScheduleRepository {
     try {
       final response = await _dioClient.dio.post('${ApiConstants.schedulesEndpoint}/$id/cancel');
 
-      return Success(ScheduleModel.fromJson(response.data['schedule']));
+      final cancelledSchedule = ScheduleModel.fromJson(response.data['schedule']);
+      
+      // Log successful cancellation for debugging
+      print("✅ Schedule cancelled successfully: ${cancelledSchedule.id}");
+      
+      return Success(cancelledSchedule);
     } on DioException catch (e) {
+      print("❌ Cancel API Error: ${e.response?.data}");
       return Failure(message: 'Network error: ${e.message}');
     } catch (e) {
+      print("❌ Cancel Error: $e");
       return Failure(message: 'Unexpected error: $e');
     }
   }

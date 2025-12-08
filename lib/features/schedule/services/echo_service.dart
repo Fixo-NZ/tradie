@@ -1,14 +1,23 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import '../../../core/config/echo_config.dart';
 
+// Updated Laravel Echo Service for Reverb - Replace your existing service with this
 class LaravelEchoService {
   static WebSocket? _socket;
   static bool _connected = false;
   static final Set<String> _subscribedChannels = {};
   static void Function(Map<String, dynamic>)? _onEvent;
   static void Function(String)? _onConnectionStateChange;
+
+  // Reverb configuration - update these values to match your setup
+  static const String _scheme = 'ws'; // Use 'wss' for HTTPS
+  static const String _host = '10.0.2.2'; // Android emulator's localhost
+  static const int _port = 8080;
+  static const String _appKey = 'wjnobqtydgun94yxiqhq'; // Your REVERB_APP_KEY
+  
+  // Add debugging flag
+  static const bool _enableVerboseLogging = false;
 
   /// Initialize and connect to Laravel Reverb
   static Future<void> init({
@@ -27,7 +36,7 @@ class LaravelEchoService {
 
     try {
       // Build WebSocket URL for Reverb
-      final wsUrl = '${EchoConfig.scheme == 'https' ? 'wss' : 'ws'}://${EchoConfig.host}:${EchoConfig.port}/app/${EchoConfig.appKey}';
+      final wsUrl = '$_scheme://$_host:$_port/app/$_appKey';
       
       if (kDebugMode) {
         print("🔄 Connecting to Reverb: $wsUrl");
@@ -93,11 +102,17 @@ class LaravelEchoService {
       if (kDebugMode) {
         print("✅ Successfully subscribed to Reverb channel: $channelName");
       }
+
     } catch (e) {
       if (kDebugMode) {
         print("❌ Failed to subscribe to channel $channelName: $e");
       }
     }
+  }
+
+  /// Subscribe to an additional channel (public method)
+  static void subscribeToAdditionalChannel(String channelName) {
+    _subscribeToChannel(channelName);
   }
 
   /// Send message to WebSocket
@@ -119,16 +134,31 @@ class LaravelEchoService {
       // Handle different message types
       final event = message['event'] as String?;
       
-      if (event != null && event.startsWith('schedule.')) {
-        _handleScheduleEvent(event, message);
-      } else if (event == 'pusher:connection_established') {
+      if (event == 'pusher:connection_established') {
         if (kDebugMode) {
           print("🔄 Reverb Connection Established");
         }
-      } else if (event == 'pusher:subscription_succeeded') {
+      } else if (event == 'pusher:subscription_succeeded' || event == 'pusher_internal:subscription_succeeded') {
         if (kDebugMode) {
-          print("✅ Subscription Succeeded");
+          print("✅ Subscription Succeeded for channel: ${message['channel']}");
         }
+      } else if (event == 'pusher:ping') {
+        // Respond to ping with pong
+        if (kDebugMode) {
+          print("🏓 Received ping, sending pong");
+        }
+        _sendMessage({'event': 'pusher:pong', 'data': {}});
+      } else if (event == 'pusher:error') {
+        if (kDebugMode) {
+          print("❌ Pusher Error: ${message['data']}");
+        }
+      }
+      
+      if (event != null && (event.startsWith('schedule.') || event == 'schedule.displayed' || event.contains('job') || event.contains('Job'))) {
+        if (kDebugMode) {
+          print("🎯 SCHEDULE EVENT DETECTED: $event");
+        }
+        _handleScheduleEvent(event, message);
       }
     } catch (e) {
       if (kDebugMode) {
@@ -142,10 +172,10 @@ class LaravelEchoService {
   static void _handleScheduleEvent(String eventName, Map<String, dynamic> message) {
     try {
       if (kDebugMode) {
-        print("📡 Reverb Schedule Event: $eventName");
-        print("Event data: $message");
+        print("🎯 HANDLING SCHEDULE EVENT: $eventName");
+        print("📡 Full message: $message");
       }
-
+      
       final eventData = <String, dynamic>{
         'event': eventName,
         'data': message['data'] ?? {},
@@ -153,10 +183,13 @@ class LaravelEchoService {
       };
 
       _onEvent?.call(eventData);
+      
+      if (kDebugMode) {
+        print("✅ Event passed to handler");
+      }
     } catch (e) {
       if (kDebugMode) {
-        print("❌ Failed to handle schedule event: $e");
-        print("Raw message: $message");
+        print("❌ Error handling schedule event: $e");
       }
     }
   }

@@ -4,6 +4,7 @@ import 'package:tradie/features/schedule/models/schedule_model.dart';
 import 'package:tradie/features/schedule/views/job_details_screen.dart';
 import 'package:tradie/features/schedule/views/notifications_screen.dart';
 import 'package:tradie/features/schedule/views/schedule_screen.dart';
+
 import '../../features/auth/views/login_screen.dart';
 import '../../features/auth/views/register_screen.dart';
 import '../../features/auth/views/dashboard_screen.dart';
@@ -57,6 +58,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/notifications',
         builder: (context, state) => const NotificationsScreen(),
       ),
+
     ],
   );
 });

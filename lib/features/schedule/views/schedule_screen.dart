@@ -47,9 +47,9 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     Map<DateTime, List<ScheduleModel>> events = {};
     for (var appt in scheduleState.schedules) {
       final date = DateTime(
-        appt.startDate.year,
-        appt.startDate.month,
-        appt.startDate.day,
+        appt.startDateTime.year,
+        appt.startDateTime.month,
+        appt.startDateTime.day,
       );
       events[date] = (events[date] ?? [])..add(appt);
     }
@@ -402,16 +402,15 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       itemCount: selectedEvents.length,
                       itemBuilder: (context, index) {
                         final event = selectedEvents[index];
-                        final color = Color(
-                          int.parse(event.color.replaceFirst('#', '0xff')),
-                        );
+                        // Use a default color since the new model doesn't have a color field
+                        final color = const Color(0xFF3066BE);
 
                         return Column(
                           children: [
                             Row(
                               children: [
                                 Text(
-                                  DateFormat('hh:mm a').format(event.startDate),
+                                  DateFormat('hh:mm a').format(event.startDateTime),
                                   style: TextStyle(color: Color(0xFF757575)),
                                 ),
                                 SizedBox(width: 10),

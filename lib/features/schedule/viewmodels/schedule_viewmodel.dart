@@ -54,24 +54,6 @@ class ScheduleViewModel extends StateNotifier<ScheduleState> {
     }
   }
 
-// Future<void> cancelEvent(int id) async {
-//   state = state.copyWith(isLoading: true);
-
-//   final result = await _repository.cancelSchedule(id);
-//   switch (result) {
-//     case Success<ScheduleModel>():
-//       final updatedList = state.schedules.where((event) => event.id != id).toList();
-//       state = state.copyWith(isLoading: false, schedules: updatedList);
-//       break;
-
-//     case Failure<ScheduleModel>():
-//       state = state.copyWith(isLoading: false, error: result.message);
-//       break;
-//   }
-// }
-//   print("🟢 FINAL state.schedules: ${state.schedules.map((e) => e.id).toList()}");
-// }
-
 Future<void> cancelEvent(int id) async {
   state = state.copyWith(isLoading: true);
 
@@ -104,15 +86,19 @@ Future<void> cancelEvent(int id) async {
 
   Future<void> rescheduleEvent({
     required int id,
-    required DateTime date,
     required DateTime startTime,
     required DateTime endTime,
   }) async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, error: null);
+
+    if (kDebugMode) {
+      print('🔄 Rescheduling event $id');
+      print('📅 Start: ${startTime.toIso8601String()}');
+      print('📅 End: ${endTime.toIso8601String()}');
+    }
 
     final result = await _repository.rescheduleEvent(
       id: id,
-      date: date,
       startTime: startTime,
       endTime: endTime,
     );
@@ -123,17 +109,30 @@ Future<void> cancelEvent(int id) async {
             .map((event) => event.id == id ? result.data : event)
             .toList();
         state = state.copyWith(isLoading: false, schedules: updatedList);
+        
+        if (kDebugMode) {
+          print('✅ Schedule rescheduled successfully: ${result.data.id}');
+          print('📅 New start: ${result.data.startDateTime}');
+          print('📅 New end: ${result.data.endDateTime}');
+        }
+        
       case Failure<ScheduleModel>():
         state = state.copyWith(isLoading: false, error: result.message);
+        
+        if (kDebugMode) {
+          print('❌ Failed to reschedule: ${result.message}');
+        }
     }
   }
 
   void _initRealtime() {
+    // Initialize with the correct channel for job offers
     LaravelEchoService.init(
-      channel: "schedules",
+      channel: "schedule-updates", // Match your backend channel name
       onEvent: (jsonData) {
         final eventName = jsonData['event'];
         debugPrint('📡 Received real-time event: $eventName');
+        debugPrint('📡 Full event data: $jsonData');
 
         switch (eventName) {
           case 'schedule.created':
@@ -148,13 +147,31 @@ Future<void> cancelEvent(int id) async {
           case 'schedule.rescheduled':
             _handleScheduleRescheduled(jsonData);
             break;
+          case 'schedule.displayed':
+            _handleScheduleDisplayed(jsonData);
+            break;
+          // Job offer events
+          case 'job.created':
+          case 'job.offer.created':
+          case 'JobOfferCreated':
+            _handleJobOfferCreated(jsonData);
+            break;
+          case 'job.updated':
+          case 'job.offer.updated':
+          case 'JobOfferUpdated':
+            _handleJobOfferUpdated(jsonData);
+            break;
           default:
             debugPrint('🤷 Unknown event type: $eventName');
+            debugPrint('📡 Full event data: $jsonData');
+            // Try to handle it as a generic job event
+            _handleGenericJobEvent(jsonData);
         }
       },
       onConnectionStateChange: (connectionState) {
         debugPrint('🔄 Laravel Echo connection state: $connectionState');
-        // You could update UI to show connection status
+        // Connection status updated - no additional subscriptions needed
+        // since we already subscribe to the correct channel: "schedule-updates"
       },
     );
   }
@@ -173,24 +190,14 @@ Future<void> cancelEvent(int id) async {
   }
 
   void _handleScheduleUpdated(Map<String, dynamic> jsonData) {
-    if (jsonData['schedule'] != null) {
-      try {
-        final updatedSchedule = ScheduleModel.fromJson(jsonData['schedule']);
-        final updatedList = state.schedules.map((event) {
-          return event.id == updatedSchedule.id ? updatedSchedule : event;
-        }).toList();
-
-        // Add if not exists (in case we missed the created event)
-        if (!updatedList.any((s) => s.id == updatedSchedule.id)) {
-          updatedList.add(updatedSchedule);
-        }
-
-        state = state.copyWith(schedules: updatedList);
-        debugPrint('✅ Schedule updated: ${updatedSchedule.id}');
-      } catch (e) {
-        debugPrint('❌ Error handling schedule updated: $e');
-      }
+    if (kDebugMode) {
+      print('🔄 SCHEDULE UPDATED EVENT RECEIVED!');
+      print('📡 Refreshing schedules from API...');
     }
+    
+    // Simple solution: Just refresh the schedules from the API
+    // This avoids JSON parsing issues and ensures data consistency
+    loadSchedules();
   }
 
   void _handleScheduleDeleted(Map<String, dynamic> jsonData) {
@@ -212,11 +219,57 @@ Future<void> cancelEvent(int id) async {
     _handleScheduleUpdated(jsonData);
   }
 
+  void _handleScheduleDisplayed(Map<String, dynamic> jsonData) {
+    if (kDebugMode) {
+      print('🎯 SCHEDULE DISPLAYED EVENT RECEIVED!');
+      print('📡 Refreshing schedules from API...');
+    }
+    
+    // Simple solution: Just refresh the schedules from the API
+    // This avoids JSON parsing issues and ensures data consistency
+    loadSchedules();
+  }
+
+  void _handleJobOfferCreated(Map<String, dynamic> jsonData) {
+    try {
+      // Job offers might be converted to schedules
+      final jobData = jsonData['data'] ?? jsonData;
+      
+      // If the job offer contains schedule information, add it
+      if (jobData['schedule'] != null) {
+        final newSchedule = ScheduleModel.fromJson(jobData['schedule']);
+        final updatedList = [...state.schedules, newSchedule];
+        state = state.copyWith(schedules: updatedList);
+      } else {
+        // Refresh schedules to get the latest data
+        loadSchedules();
+      }
+    } catch (e) {
+      // Fallback: refresh schedules
+      loadSchedules();
+    }
+  }
+
+  void _handleJobOfferUpdated(Map<String, dynamic> jsonData) {
+    // For now, just refresh the schedules when job offers are updated
+    loadSchedules();
+  }
+
+  void _handleGenericJobEvent(Map<String, dynamic> jsonData) {
+    // If it contains schedule data, try to handle it
+    final eventData = jsonData['data'] ?? jsonData;
+    if (eventData['schedules'] != null) {
+      _handleScheduleDisplayed(jsonData);
+    } else if (eventData['schedule'] != null) {
+      _handleScheduleUpdated(jsonData);
+    }
+  }
+
 
 
   @override
   void dispose() {
-    LaravelEchoService.disconnect(channel: "schedules");
+    LaravelEchoService.disconnect(channel: "schedule-updates");
     super.dispose();
   }
 }

@@ -19,6 +19,7 @@ class NotificationsScreen extends ConsumerWidget {
             ),
           ),
           bottom: TabBar(
+            indicatorSize: TabBarIndicatorSize.tab,
             tabs: [
               Tab(text: 'All',),
               Tab(text: 'Read',),

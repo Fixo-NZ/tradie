@@ -21,7 +21,7 @@ class JobDetailsScreen extends ConsumerWidget {
       // orElse: () => null,
     );
 
-    final duration = event.endDate.difference(event.startDate);
+    final duration = event.endDateTime.difference(event.startDateTime);
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
     final durationText = '${hours}h ${minutes}m';
@@ -75,12 +75,15 @@ class JobDetailsScreen extends ConsumerWidget {
                   Row(
                     children: [
                       const Icon(Icons.location_on_outlined,
-                          color: Colors.grey, size: 18),
+                          color: Colors.black, size: 24),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           event.homeowner.address,
-                          style: const TextStyle(color: Colors.black54),
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 14
+                          ),
                         ),
                       ),
                     ],
@@ -97,15 +100,38 @@ class JobDetailsScreen extends ConsumerWidget {
               content: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    'Starting Date',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10,),
                   _ScheduleItem(
-                    label: 'Date',
-                    value: DateFormat('MMMM dd, yyyy').format(event.startDate),
+                    label: 'Date:',
+                    value: DateFormat('MMMM dd, yyyy').format(event.startDateTime),
                   ),
                   _ScheduleItem(
-                    label: 'Time',
-                    value:
-                        '${DateFormat('hh:mm a').format(event.startDate)} - ${DateFormat('hh:mm a').format(event.endDate)}',
+                    label: 'Time:',
+                    value: DateFormat('hh:mm a').format(event.startDateTime),
                   ),
+
+                  SizedBox(height: 15,),
+                  
+                  Text(
+                    'Ending Date',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10,),
+                  _ScheduleItem(
+                    label: 'Date:',
+                    value: DateFormat('MMMM dd, yyyy').format(event.endDateTime),
+                  ),
+                  _ScheduleItem(
+                    label: 'Time:',
+                    value: DateFormat('hh:mm a').format(event.endDateTime),
+                  ),
+
+                  SizedBox(height: 15,),
+
                   _ScheduleItem(label: 'Duration', value: durationText),
                 ],
               ),
@@ -141,7 +167,7 @@ class JobDetailsScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        '${event.homeowner.firstName} ${event.homeowner.middleName} ${event.homeowner.lastName}',
+                        event.homeowner.fullName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -303,11 +329,16 @@ class _ScheduleItem extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          SizedBox(width: 80, child: Text(label)),
+          SizedBox(
+            width: 80, 
+            child: Text(
+              label,
+              style: TextStyle(color: Color(0xFF757575)),
+            )
+          ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ],

@@ -59,6 +59,13 @@ dependencies:
 
   # websocket - Works perfectly with Laravel Reverb
   laravel_echo: 1.0.0-beta.1
+  
+  # Firebase for FCM token only
+  firebase_core: ^2.24.2
+  firebase_messaging: ^14.7.10
+  flutter_local_notifications: ^19.5.0
+  
+
 
 dev_dependencies:
   flutter_test:
