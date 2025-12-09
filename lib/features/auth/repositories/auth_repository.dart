@@ -120,7 +120,7 @@ class AuthRepository {
     required String passwordConfirmation,
   }) async {
     try {
-      await _dioClient.dio.post(
+      await _dioClient.dio.put(
         ApiConstants.setNewPasswordEndpoint,
         data: {
           'email': email,
