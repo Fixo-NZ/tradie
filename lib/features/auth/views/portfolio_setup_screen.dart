@@ -6,7 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/navigation_widgets.dart';
-import 'rates_setup_screen.dart';
+import 'done_screen.dart';
 import '../viewmodels/portfolio_setup_viewmodel.dart';
 import '../services/api_service.dart';
 
@@ -49,7 +49,7 @@ class PortfolioSetupScreen extends ConsumerWidget {
     );
 
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (_) => const RatesSetupScreen()));
+      .push(MaterialPageRoute(builder: (_) => const DoneScreen()));
   }
 
   @override

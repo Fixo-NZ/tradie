@@ -34,6 +34,9 @@ dependencies:
   http: ^1.2.0 # Updated version
   provider: ^6.0.5
   url_launcher: ^6.2.2
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  geolocator: ^10.0.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

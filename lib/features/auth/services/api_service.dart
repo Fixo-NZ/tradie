@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = "http://192.168.4.111:8000/api/tradie";
+  static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
 
   static const String token =
       "7|XULoPEKfwdg3MrihDS7AcKfx55OEOXezA5KSyXNNc7d32ead";

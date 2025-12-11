@@ -9,7 +9,7 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/navigation_widgets.dart';
 import 'package:image_picker/image_picker.dart';
-import 'skills_setup_screen.dart';
+import 'license_upload_screen.dart';
 import '../viewmodels/profile_setup_viewmodel.dart';
 
 
@@ -54,7 +54,7 @@ class ProfileSetupScreen extends ConsumerWidget {
     if (success) {
       if (context.mounted) {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const SkillsSetupScreen()),
+          MaterialPageRoute(builder: (_) => const LicenseUploadScreen()),
         );
       }
     } else {
