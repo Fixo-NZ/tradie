@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../network/dio_client.dart';
 
@@ -122,7 +123,18 @@ class PushNotificationService {
       print('📱 Message data: ${message.data}');
     }
 
-    // Show local notification when app is in foreground
+    // Check if this is a job reminder - if so, don't show generic notification
+    final messageType = message.data['type'];
+    if (messageType == 'job_reminder') {
+      if (kDebugMode) {
+        print('🔔 Job reminder detected - skipping generic notification');
+      }
+      // Only call the custom handler, don't show generic notification
+      _onMessageReceived?.call(message.data);
+      return;
+    }
+
+    // Show local notification when app is in foreground (for non-job-reminder messages)
     await _showLocalNotification(message);
 
     // Call custom handler
@@ -188,19 +200,21 @@ class PushNotificationService {
     try {
       if (kDebugMode) {
         print('📤 Sending FCM token to backend: $token');
+        print('🔗 Using endpoint: /tradie/update-token');
       }
       
-      // Import your DioClient
+      // Use the correct endpoint that matches your Laravel routes
       final dioClient = DioClient.instance;
-      await dioClient.dio.post('/auth/fcm-token', data: {'fcm_token': token});
+      await dioClient.dio.post('/schedules/tradie/update-token', data: {'fcm_token': token});
       
       if (kDebugMode) {
-        print('✅ FCM token sent successfully');
+        print('✅ FCM token sent successfully to /tradie/update-token');
       }
       
     } catch (e) {
       if (kDebugMode) {
         print('❌ Failed to send FCM token to backend: $e');
+        print('🔍 Make sure /tradie/update-token endpoint exists and accepts fcm_token');
       }
     }
   }
@@ -213,17 +227,78 @@ class PushNotificationService {
     await _localNotifications.cancelAll();
   }
 
-  /// Handle specific notification types
+  /// Handle job reminder from Laravel sendJobReminderToTradie function
+  /// Data structure: {'job_id': string, 'type': 'job_reminder', 'start_time': string}
   static void handleJobReminder(Map<String, dynamic> data) {
     if (kDebugMode) {
-      print('🔔 Job reminder received: $data');
+      print('🔔 Job reminder received from Laravel backend');
+      print('📋 Job ID: ${data['job_id']}');
+      print('⏰ Start Time: ${data['start_time']}');
+      print('🔔 Type: ${data['type']}');
     }
 
-    final jobId = data['job_id'];
-    final startTime = data['start_time'];
+    // Show immediate notification pop-up for job reminder
+    _showJobReminderPopup(data);
+  }
+
+  /// Show job reminder notification pop-up (matches Laravel backend message)
+  static Future<void> _showJobReminderPopup(Map<String, dynamic> data) async {
+    final jobId = data['job_id'] ?? 'Unknown';
+    final startTime = data['start_time'] ?? '';
     
-    // Navigate to job details or show appropriate UI
-    // You can use your navigation service here
+    // Enhanced notification for job reminders (1 hour before start)
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'job_reminders',
+      'Job Reminders',
+      channelDescription: 'Reminders for upcoming jobs (1 hour before start)',
+      importance: Importance.max,
+      priority: Priority.max,
+      showWhen: true,
+      enableVibration: true,
+      playSound: true,
+      visibility: NotificationVisibility.public,
+      // Force heads-up notification (pop-up)
+      fullScreenIntent: true,
+      category: AndroidNotificationCategory.alarm,
+      // Custom styling for job reminders
+      enableLights: true,
+      ledColor: Color.fromARGB(255, 255, 165, 0), // Orange color
+      ledOnMs: 1000,
+      ledOffMs: 500,
+      // Make it persistent until user interacts
+      ongoing: false,
+      autoCancel: true,
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      interruptionLevel: InterruptionLevel.timeSensitive,
+      categoryIdentifier: 'JOB_REMINDER',
+    );
+
+    const NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      int.tryParse(jobId.toString()) ?? DateTime.now().millisecondsSinceEpoch,
+      '⏰ Upcoming Job Reminder', // Matches Laravel title
+      'You have a job scheduled in 1 hour! Tap to view details.', // Simplified body
+      platformDetails,
+      payload: jsonEncode({
+        ...data,
+        'notification_type': 'job_reminder',
+        'action': 'view_job_details',
+      }),
+    );
+
+    if (kDebugMode) {
+      print('✅ Job reminder pop-up notification shown for job: $jobId');
+      print('⏰ Job starts at: $startTime');
+    }
   }
 
   /// Handle job status updates
@@ -232,8 +307,8 @@ class PushNotificationService {
       print('🔄 Job update received: $data');
     }
 
-    final jobId = data['job_id'];
-    final status = data['status'];
+    // final jobId = data['job_id'];
+    // final status = data['status'];
     
     // Update local data or refresh schedules
     // You can trigger a schedule refresh here

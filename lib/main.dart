@@ -32,7 +32,14 @@ void main() async {
     await PushNotificationService.initialize(
       onMessageReceived: (data) {
         print("📱 Notification data received: $data");
-        // Handle notification tap/data here if needed
+        
+        // Handle job reminder notifications from Laravel backend
+        final notificationType = data['type'] ?? data['notification_type'];
+        
+        if (notificationType == 'job_reminder') {
+          // This handles notifications from your Laravel sendJobReminderToTradie function
+          PushNotificationService.handleJobReminder(data);
+        }
       },
     );
     

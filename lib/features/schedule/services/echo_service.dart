@@ -17,7 +17,7 @@ class LaravelEchoService {
   static const String _appKey = 'wjnobqtydgun94yxiqhq'; // Your REVERB_APP_KEY
   
   // Add debugging flag
-  static const bool _enableVerboseLogging = false;
+  // static const bool _enableVerboseLogging = false;
 
   /// Initialize and connect to Laravel Reverb
   static Future<void> init({

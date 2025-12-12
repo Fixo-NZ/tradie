@@ -204,23 +204,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
             if (scheduleState.isLoading && scheduleState.schedules.isNotEmpty) 
               const LinearProgressIndicator(),
 
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                margin: EdgeInsets.only(top: 10),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFCEDBF1)
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.notifications_outlined, size: 24, color: Colors.black,),
-                  onPressed: () {
-                    context.push('/notifications');
-                  }, 
-                ),
-              ),
-            ),
-
             /// Calendar
             SizedBox(
               height: 400,
