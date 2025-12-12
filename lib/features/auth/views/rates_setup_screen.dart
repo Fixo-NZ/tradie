@@ -1,20 +1,11 @@
+// Rates screen removed — keep a small stub to avoid accidental imports.
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_dimensions.dart';
-import '../../../core/theme/app_text_styles.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/navigation_widgets.dart';
-import 'done_screen.dart';
-import '../viewmodels/rates_setup_viewmodel.dart';
 
-final ratesSetupProvider =
-    StateNotifierProvider<RatesSetupViewModel, RatesSetupState>(
-  (ref) => RatesSetupViewModel(),
-);
-
-class RatesSetupScreen extends ConsumerWidget {
+@deprecated
+class RatesSetupScreen extends StatelessWidget {
   const RatesSetupScreen({super.key});
 
+<<<<<<< HEAD
   //Handles save + navigation logic safely
   void _onContinue(BuildContext context, WidgetRef ref) async {
     final viewModel = ref.read(ratesSetupProvider.notifier);
@@ -348,33 +339,12 @@ class _ChargeModeButton extends StatelessWidget {
     required this.selectedColor,
   });
 
+=======
+>>>>>>> f92fede8de9f93b9d130c4d8ccb47e1a2de544fd
   @override
   Widget build(BuildContext context) {
-    final borderColor = selected ? selectedColor : const Color(0xFFCACACA);
-    final bg = selected ? selectedColor : Colors.white;
-    final textColor = selected ? Colors.white : Colors.black87;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: bg,
-          border: Border.all(color: borderColor),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 16, color: textColor),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style:
-                  TextStyle(color: textColor, fontWeight: FontWeight.w600),
-            ),
-          ],
-        ),
-      ),
-    );
+    // If this screen is ever instantiated, throw so the issue is visible immediately.
+    throw UnimplementedError(
+        'RatesSetupScreen has been removed. Navigate from Portfolio -> Done instead.');
   }
 }

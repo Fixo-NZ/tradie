@@ -3,9 +3,13 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
+<<<<<<< HEAD
   // Base URL for all API requests
   //static const String baseUrl = "http://192.168.4.111:8000/api/tradie";
   static const String baseUrl = "http://10.0.2.2:8000/api/tradie";   //For testing - Kath
+=======
+  static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
+>>>>>>> f92fede8de9f93b9d130c4d8ccb47e1a2de544fd
 
   static const String token =
       "21|PCy519KIhPLm4BGBpZHLjtebcR4cKPZcCIJOWxN28564712c"; //For testing - Kath 

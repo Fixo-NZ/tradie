@@ -1,4 +1,6 @@
+// Rates viewmodel removed — stub kept to preserve API shape if accidentally imported.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+<<<<<<< HEAD
 import '../services/rates_api_service.dart';
 
 class RatesSetupViewModel extends StateNotifier<RatesSetupState> {
@@ -66,47 +68,17 @@ class RatesSetupViewModel extends StateNotifier<RatesSetupState> {
     }
   }
 }
+=======
+>>>>>>> f92fede8de9f93b9d130c4d8ccb47e1a2de544fd
 
 class RatesSetupState {
-  final int chargeMode;
-  final String hourlyRate;
-  final String minimumHoursString; // HH:MM format
-  final bool afterHours;
-  final bool callOut;
-  final String description;
-  final String afterHoursFee;
-  final String callOutFee;
+  const RatesSetupState();
+}
 
-  const RatesSetupState({
-    this.chargeMode = 0,
-    this.hourlyRate = '',
-    this.minimumHoursString = '01:00',
-    this.afterHours = false,
-    this.callOut = false,
-    this.description = '',
-    this.afterHoursFee = '',
-    this.callOutFee = '',
-  });
-
-  RatesSetupState copyWith({
-    int? chargeMode,
-    String? hourlyRate,
-    String? minimumHoursString,
-    bool? afterHours,
-    bool? callOut,
-    String? description,
-    String? afterHoursFee,
-    String? callOutFee,
-  }) {
-    return RatesSetupState(
-      chargeMode: chargeMode ?? this.chargeMode,
-      hourlyRate: hourlyRate ?? this.hourlyRate,
-      minimumHoursString: minimumHoursString ?? this.minimumHoursString,
-      afterHours: afterHours ?? this.afterHours,
-      callOut: callOut ?? this.callOut,
-      description: description ?? this.description,
-      afterHoursFee: afterHoursFee ?? this.afterHoursFee,
-      callOutFee: callOutFee ?? this.callOutFee,
-    );
+@deprecated
+class RatesSetupViewModel extends StateNotifier<RatesSetupState> {
+  RatesSetupViewModel() : super(const RatesSetupState()) {
+    throw UnimplementedError(
+        'RatesSetupViewModel removed — rates feature deprecated in this branch.');
   }
 }

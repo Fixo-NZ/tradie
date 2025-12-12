@@ -9,7 +9,7 @@ import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/navigation_widgets.dart';
 import 'package:image_picker/image_picker.dart';
-import 'skills_setup_screen.dart';
+import 'license_upload_screen.dart';
 import '../viewmodels/profile_setup_viewmodel.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
@@ -203,6 +203,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
           final success = await viewModel.submitBasicInfo();
 
+<<<<<<< HEAD
           if (context.mounted) Navigator.pop(context); // close loader
 
           if (success) {
@@ -217,6 +218,25 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 .showSnackBar(SnackBar(content: Text(message)));
           }
         },
+=======
+    if (success) {
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const LicenseUploadScreen()),
+        );
+      }
+    } else {
+      final message = state.errorMessage ?? 'Failed to save profile';
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please fill in all required fields')),
+    );
+  }
+},
+>>>>>>> f92fede8de9f93b9d130c4d8ccb47e1a2de544fd
         backgroundColor: const Color(0xFF0000A8),
       ),
       body: SafeArea(

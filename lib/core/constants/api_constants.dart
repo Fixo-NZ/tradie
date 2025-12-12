@@ -1,5 +1,6 @@
 class ApiConstants {
  
+<<<<<<< HEAD
   // Base URLs
   // NOTE: Do not remove these URLs just in case we need to switch between local and public servers
   // Main API URL
@@ -13,6 +14,13 @@ class ApiConstants {
   // Alternative URLs (for emulator or different networks)
   //static const String baseUrl = "http://10.0.2.2:8000/api/tradie";         // Android emulator
   //static const String baseUrl = 'http://192.168.100.250:8000/api/tradie';  // Local network option
+=======
+  static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
+  static const String publicBaseUrl = "http://192.168.100.53:8000";
+  //static const String publicBaseUrl = "http://192.168.4.111:8000";
+  // static const String baseUrl = "http://10.0.2.2:8000/api/tradie";
+  //static const String baseUrl = 'http://192.168.100.250:8000/api/tradie';
+>>>>>>> f92fede8de9f93b9d130c4d8ccb47e1a2de544fd
 
   // Auth Endpoints
   static const String loginEndpoint = '/login';

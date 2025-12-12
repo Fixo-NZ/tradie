@@ -34,11 +34,17 @@ class SkillsState {
   final bool isLoading;
   final String? errorMessage;
 
+  // ⭐ NEW: store map coordinates
+  final double latitude;
+  final double longitude;
+
   SkillsState({
     required this.skills,
     required this.serviceRadius,
     this.isLoading = false,
     this.errorMessage,
+    this.latitude = 0.0,
+    this.longitude = 0.0,
   });
 
   SkillsState copyWith({
@@ -46,12 +52,16 @@ class SkillsState {
     double? serviceRadius,
     bool? isLoading,
     String? errorMessage,
+    double? latitude,
+    double? longitude,
   }) {
     return SkillsState(
       skills: skills ?? this.skills,
       serviceRadius: serviceRadius ?? this.serviceRadius,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }
@@ -79,6 +89,9 @@ class SkillsViewModel extends StateNotifier<SkillsState> {
           ),
         );
 
+  // -------------------------------------------------------------
+  // SELECT SKILLS
+  // -------------------------------------------------------------
   void toggleSkillSelection(int index) {
     final updatedSkills = state.skills
         .asMap()
@@ -91,43 +104,68 @@ class SkillsViewModel extends StateNotifier<SkillsState> {
     state = state.copyWith(skills: updatedSkills);
   }
 
+  // -------------------------------------------------------------
+  // UPDATE SERVICE RADIUS
+  // -------------------------------------------------------------
   void updateServiceRadius(double radius) {
     state = state.copyWith(serviceRadius: radius);
   }
 
+  // -------------------------------------------------------------
+  // ⭐ NEW: UPDATE MAP PIN LOCATION
+  // -------------------------------------------------------------
+  void updateSelectedLocation(double latitude, double longitude) {
+    state = state.copyWith(
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    print("📍 Updated location: $latitude, $longitude");
+  }
+
+  // -------------------------------------------------------------
+  // SUBMIT DATA TO API
+  // -------------------------------------------------------------
   Future<bool> submitSkills({
-  required String address,
-  required String city,
-  required String region,
-  required String postalCode,
-}) async {
-  state = state.copyWith(isLoading: true, errorMessage: null);
+    required String address,
+    required String city,
+    required String region,
+    required String postalCode,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
 
-  final selectedSkillIds =
-      state.skills.where((s) => s.isSelected).map((s) => s.id).toList();
+    final selectedSkillIds =
+        state.skills.where((s) => s.isSelected).map((s) => s.id).toList();
 
+<<<<<<< HEAD
   print("Selected skills (before API): $selectedSkillIds");
   print("Type of skills: ${selectedSkillIds.runtimeType}");
+=======
+    print("🟢 Selected skills (before API): $selectedSkillIds");
+>>>>>>> f92fede8de9f93b9d130c4d8ccb47e1a2de544fd
 
-  final serviceLocation = {
-    "address": address,
-    "city": city,
-    "region": region,
-    "postal_code": postalCode,
-    "latitude": 16.6799,
-    "longitude": 120.3333,
-  };
+    final serviceLocation = {
+      "address": address,
+      "city": city,
+      "region": region,
+      "postal_code": postalCode,
 
-  final result = await _api.updateSkillsAndService(
-    skills: selectedSkillIds,
-    serviceRadius: state.serviceRadius.toInt(),
-    serviceLocation: serviceLocation,
-  );
+      // ⭐ Use REAL map coordinates chosen by the user
+      "latitude": state.latitude,
+      "longitude": state.longitude,
+    };
 
-  final success = result['success'] == true;
-  state = state.copyWith(isLoading: false);
-  return success;
-}
+    final result = await _api.updateSkillsAndService(
+      skills: selectedSkillIds,
+      serviceRadius: state.serviceRadius.toInt(),
+      serviceLocation: serviceLocation,
+    );
+
+    final success = result['success'] == true;
+    state = state.copyWith(isLoading: false);
+
+    return success;
+  }
 }
 
 final skillsViewModelProvider =

@@ -1,7 +1,9 @@
-import 'dart:convert';
+// Rates API service removed — stub kept to avoid breaking imports.
 import '../services/api_service.dart';
 
+@deprecated
 class RatesApiService extends ApiService {
+<<<<<<< HEAD
   // Save or update tradie's rate and related settings
   Future<bool> saveRates({
     required int chargeMode, 
@@ -58,5 +60,9 @@ class RatesApiService extends ApiService {
       print("Error decoding response: $e");
       return false;
     }
+=======
+  RatesApiService() {
+    throw UnimplementedError('RatesApiService removed — rates feature deprecated.');
+>>>>>>> f92fede8de9f93b9d130c4d8ccb47e1a2de544fd
   }
 }
