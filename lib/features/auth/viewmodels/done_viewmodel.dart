@@ -16,7 +16,7 @@ class DoneViewModel extends StateNotifier<DoneState> {
     try {
       state = state.copyWith(isLoading: true);
 
-      // ✅ Fetch profile data (Laravel returns nested JSON)
+      // Fetch profile data (Laravel returns nested JSON)
       final data = await _apiService.fetchProfile();
       final profileData = data['data'] is Map ? data['data'] : data;
 
@@ -27,11 +27,11 @@ class DoneViewModel extends StateNotifier<DoneState> {
         bio: profileData['bio'],
         businessName: profileData['business_name'],
         phone: profileData['phone'],
-        // ✅ Laravel may return either 'avatar' (path) or 'avatar_url' (full URL)
+        // Laravel may return either 'avatar' (path) or 'avatar_url' (full URL)
         avatar: profileData['avatar'] ?? profileData['avatar_url'],
       );
 
-      // ✅ Fetch and map skills
+      // Fetch and map skills
       final List<dynamic> skillsData = await _apiService.fetchSkills();
       final Map<int, String> skillsMap = {
         1: 'Painting',
@@ -58,7 +58,7 @@ class DoneViewModel extends StateNotifier<DoneState> {
         error: null,
       );
     } catch (e) {
-      print('❌ Error loading profile: $e');
+      print('Error loading profile: $e');
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to load profile data',

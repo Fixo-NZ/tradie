@@ -48,15 +48,15 @@ class ConfirmationScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: AppDimensions.spacing24),
 
-                  // 🎉 Confirmation Image (like a checkmark or confetti)
+                  // Confirmation Image (like a checkmark or confetti)
                   Image.asset(
-                    'assets/images/Confirm.png', // ✅ Ensure this file is available in your assets folder
+                    'assets/images/Confirm.png', // Ensure this file is available in your assets folder
                     width: 200,
                     height: 200,
                   ),
                   const SizedBox(height: AppDimensions.spacing24),
 
-                  // 📝 Subtitle text to give more context
+                  // Subtitle text to give more context
                   Text(
                     'Your profile is complete—now you can connect with clients on Fixo.',
                     style: AppTextStyles.bodyLarge.copyWith(

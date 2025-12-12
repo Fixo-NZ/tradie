@@ -4,7 +4,6 @@ import 'api_service.dart';
 
 class SkillsApiService extends ApiService {
 
-  
   Future<Map<String, dynamic>> updateSkillsAndService({
     required List<int> skills,                
     required int serviceRadius,              
@@ -25,15 +24,14 @@ class SkillsApiService extends ApiService {
       // Decode the backend response from JSON to a Dart Map
       final data = jsonDecode(response.body);
 
-      // Return the formatted response
       return {
         'success': response.statusCode == 200 &&
             (data['success'] == true || data['success'] == 1), 
         'statusCode': response.statusCode, 
-        'body': data,                      // Actual data from backend
+        'body': data,                    
       };
     } catch (e) {
-      print("⚠️ Error updating skills and service: $e");
+      print("Error updating skills and service: $e");
       return {
         'success': false,
         'statusCode': 0,

@@ -1,4 +1,5 @@
 // lib/viewmodels/profile_setup_viewmodel.dart
+// import '../services/profile_service.dart'; 
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +17,7 @@ class ProfileSetupState {
   final Uint8List? pickedImageBytes;
   final bool isLoading;
   final String? errorMessage;
-  final Map<String, dynamic>? profile; // ✅ added to hold fetched profile data
+  final Map<String, dynamic>? profile; 
 
   ProfileSetupState({
     this.firstName = '',
@@ -61,8 +62,7 @@ class ProfileSetupState {
   }
 }
 
-final profileSetupViewModelProvider =
-    StateNotifierProvider<ProfileSetupViewModel, ProfileSetupState>((ref) {
+final profileSetupViewModelProvider = StateNotifierProvider<ProfileSetupViewModel, ProfileSetupState>((ref) {
   final service = ProfileApiService();
   return ProfileSetupViewModel(service);
 });
@@ -72,16 +72,13 @@ class ProfileSetupViewModel extends StateNotifier<ProfileSetupState> {
 
   ProfileSetupViewModel(this._service) : super(ProfileSetupState());
 
-  // ───────────────────────────────
-  // FIELD UPDATERS
-  // ───────────────────────────────
+  //Field update methods
   void updateFirstName(String v) => state = state.copyWith(firstName: v);
   void updateLastName(String v) => state = state.copyWith(lastName: v);
   void updateEmail(String v) => state = state.copyWith(email: v);
   void updatePhone(String v) => state = state.copyWith(phone: v);
   void updateBusinessName(String v) => state = state.copyWith(businessName: v);
-  void updateProfessionalBio(String v) =>
-      state = state.copyWith(professionalBio: v);
+  void updateProfessionalBio(String v) => state = state.copyWith(professionalBio: v);
 
   Future<void> setPickedImage(File file) async {
     Uint8List? bytes;
@@ -106,9 +103,7 @@ class ProfileSetupViewModel extends StateNotifier<ProfileSetupState> {
     state = state.copyWith(pickedImage: null, pickedImageBytes: null);
   }
 
-  // ───────────────────────────────
-  // BASIC INFO SUBMISSION
-  // ───────────────────────────────
+  // Basic Info Submission
   Future<bool> submitBasicInfo() async {
     if (state.firstName.isEmpty ||
         state.lastName.isEmpty ||
@@ -130,7 +125,7 @@ class ProfileSetupViewModel extends StateNotifier<ProfileSetupState> {
       businessName: state.businessName,
       professionalBio:
           state.professionalBio.isEmpty ? null : state.professionalBio,
-      avatarImage: state.pickedImage, // 👈 includes image if selected
+      avatarImage: state.pickedImage, 
     );
 
     state = state.copyWith(isLoading: false);
@@ -140,7 +135,18 @@ class ProfileSetupViewModel extends StateNotifier<ProfileSetupState> {
       final body = result['body'];
       String message = 'Failed to save profile. Try again.';
       try {
-        if (body is Map && body.containsKey('message')) {
+        // SPECIAL HANDLING FOR EMAIL VALIDATION ERROR
+        if (body is Map &&
+            body.containsKey('error') &&
+            body['error'] is Map &&
+            body['error']['details'] is Map &&
+            body['error']['details']['email'] is List &&
+            body['error']['details']['email'].isNotEmpty) {
+          message = 'email is invalid';
+        }
+
+        // Fallback existing logic (unchanged)
+        else if (body is Map && body.containsKey('message')) {
           message = body['message'].toString();
         } else if (body is Map && body.containsKey('error')) {
           message = body['error'].toString();
@@ -157,19 +163,15 @@ class ProfileSetupViewModel extends StateNotifier<ProfileSetupState> {
       } catch (_) {}
       state = state.copyWith(errorMessage: message);
     } else {
-      // ✅ Automatically upload avatar after saving basic info
+      // Automatically upload avatar after saving basic info
       if (state.pickedImage != null) {
-        print('📤 Uploading avatar automatically after basic info save...');
+        print('Uploading avatar automatically after basic info save...');
         await uploadProfileImage(state.pickedImage!);
       }
     }
-
     return success;
   }
 
-  // ───────────────────────────────
-  // AVATAR UPLOAD + REFETCH PROFILE
-  // ───────────────────────────────
   Future<bool> uploadProfileImage(File image) async {
     try {
       state = state.copyWith(isLoading: true);
@@ -180,22 +182,21 @@ class ProfileSetupViewModel extends StateNotifier<ProfileSetupState> {
       state = state.copyWith(isLoading: false);
 
       if (success) {
-        print('✅ Image uploaded successfully!');
+        print('Image uploaded successfully!');
 
-        // ✅ Fetch latest profile from backend
+        // Fetch latest profile from backend
         final profileResponse = await _service.getProfile();
         if (profileResponse['success'] == true) {
           state = state.copyWith(profile: profileResponse['data']);
-          print('🔁 Profile updated after avatar upload.');
+          print('Profile updated after avatar upload.');
         } else {
-          print('⚠️ Failed to fetch updated profile data.');
+          print('Failed to fetch updated profile data.');
         }
       } else {
-        print('❌ Image upload failed: ${response.statusCode}');
+        print('Image upload failed: ${response.statusCode}');
         state = state.copyWith(
-            errorMessage: 'Image upload failed: ${response.statusCode}');
-      }
-
+          errorMessage: 'Image upload failed: ${response.statusCode}');
+        }
       return success;
     } catch (e) {
       print('Image upload failed: $e');

@@ -1,4 +1,4 @@
-// lib/screens/profile_setup/profile_setup_screen.dart
+//lib/screens/profile_setup/profile_setup_screen.dart
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -12,12 +12,163 @@ import 'package:image_picker/image_picker.dart';
 import 'skills_setup_screen.dart';
 import '../viewmodels/profile_setup_viewmodel.dart';
 
-
-class ProfileSetupScreen extends ConsumerWidget {
+class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
+}
+
+class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
+  // Controllers for fields we need to programmatically update
+  late final TextEditingController _firstNameController;
+  late final TextEditingController _lastNameController;
+  late final TextEditingController _phoneController;
+  // Form key to validate inputs before submission
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  // Formatting guard to avoid recursion inside listeners
+  bool _isFormatting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final state = ref.read(profileSetupViewModelProvider);
+
+    // Initialize controllers with current state values (or defaults)
+    _firstNameController = TextEditingController(text: state.firstName);
+    _lastNameController = TextEditingController(text: state.lastName);
+    _phoneController = TextEditingController(text: state.phone.isEmpty ? '+64 ' : state.phone);
+
+    // Listeners
+    _firstNameController.addListener(_onFirstNameChanged);
+    _lastNameController.addListener(_onLastNameChanged);
+    _phoneController.addListener(_onPhoneChanged);
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.removeListener(_onFirstNameChanged);
+    _lastNameController.removeListener(_onLastNameChanged);
+    _phoneController.removeListener(_onPhoneChanged);
+
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  // Helper: Capitalize the first letter of each word
+  String capitalizeWords(String value) {
+    if (value.trim().isEmpty) return value;
+    return value.split(' ').map((word) {
+      if (word.isEmpty) return '';
+      return word[0].toUpperCase() + (word.length > 1 ? word.substring(1).toLowerCase() : '');
+    }).join(' ');
+  }
+
+  // First name listener
+  void _onFirstNameChanged() {
+    if (_isFormatting) return;
+    _isFormatting = true;
+
+    final raw = _firstNameController.text;
+    final formatted = capitalizeWords(raw);
+
+    if (formatted != raw) {
+      // preserve caret position at end (simple approach)
+      _firstNameController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+    }
+
+    // Update view model
+    ref.read(profileSetupViewModelProvider.notifier).updateFirstName(formatted);
+    _isFormatting = false;
+  }
+
+  // Last name listener
+  void _onLastNameChanged() {
+    if (_isFormatting) return;
+    _isFormatting = true;
+
+    final raw = _lastNameController.text;
+    final formatted = capitalizeWords(raw);
+
+    if (formatted != raw) {
+      _lastNameController.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+    }
+
+    // Update view model
+    ref.read(profileSetupViewModelProvider.notifier).updateLastName(formatted);
+    _isFormatting = false;
+  }
+
+  // Phone formatting listener: enforces "+64 " prefix and "21 XXXX XXX" formatting
+  void _onPhoneChanged() {
+    if (_isFormatting) return;
+    _isFormatting = true;
+
+    String current = _phoneController.text;
+
+    // If user deleted prefix, restore it
+    if (!current.startsWith('+64 ')) {
+      current = '+64 ';
+    }
+
+    // Extract digits only
+    String digitsOnly = current.replaceAll(RegExp(r'[^\d]'), '');
+
+    // Remove leading '64' if present to get NZ local digits
+    if (digitsOnly.startsWith('64')) {
+      digitsOnly = digitsOnly.substring(2);
+    }
+
+    // Limit to 9 digits (NZ numbers are 9 digits after country code)
+    if (digitsOnly.length > 9) {
+      digitsOnly = digitsOnly.substring(0, 9);
+    }
+
+    // Build formatted string: +64 XX XXXX XXX (2-4-3 groups)
+    final buffer = StringBuffer('+64 ');
+    if (digitsOnly.length >= 1) {
+      // first group ideally 2 digits (e.g. 21)
+      if (digitsOnly.length >= 2) {
+        buffer.write(digitsOnly.substring(0, 2));
+      } else {
+        buffer.write(digitsOnly.substring(0, 1));
+      }
+    }
+    if (digitsOnly.length > 2) {
+      final end = digitsOnly.length.clamp(2, 6);
+      buffer.write(' ');
+      buffer.write(digitsOnly.substring(2, end));
+    }
+    if (digitsOnly.length > 6) {
+      buffer.write(' ');
+      buffer.write(digitsOnly.substring(6));
+    }
+
+    final formatted = buffer.toString();
+
+    // Update controller text and place cursor at the end
+    _phoneController.value = TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+
+    // Update view model
+    ref.read(profileSetupViewModelProvider.notifier).updatePhone(formatted);
+
+    _isFormatting = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final viewModel = ref.read(profileSetupViewModelProvider.notifier);
     final state = ref.watch(profileSetupViewModelProvider);
 
@@ -35,39 +186,37 @@ class ProfileSetupScreen extends ConsumerWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ContinueFloatingButton(
         onPressed: () async {
-  if (state.firstName.isNotEmpty &&
-      state.lastName.isNotEmpty &&
-      state.email.isNotEmpty &&
-      state.businessName.isNotEmpty &&
-      state.phone.isNotEmpty) {
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
+          // Validate the form first; validators will provide field-level errors
+          final isValid = _formKey.currentState?.validate() ?? false;
+          if (!isValid) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Enter valid email')),
+            );
+            return;
+          }
 
-    final success = await viewModel.submitBasicInfo();
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => const Center(child: CircularProgressIndicator()),
+          );
 
-    if (context.mounted) Navigator.pop(context); // close loader
+          final success = await viewModel.submitBasicInfo();
 
-    if (success) {
-      if (context.mounted) {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const SkillsSetupScreen()),
-        );
-      }
-    } else {
-      final message = state.errorMessage ?? 'Failed to save profile';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
-    }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Please fill in all required fields')),
-    );
-  }
-},
+          if (context.mounted) Navigator.pop(context); // close loader
+
+          if (success) {
+            if (context.mounted) {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SkillsSetupScreen()),
+              );
+            }
+          } else {
+            final message = state.errorMessage ?? 'Failed to save profile';
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(message)));
+          }
+        },
         backgroundColor: const Color(0xFF0000A8),
       ),
       body: SafeArea(
@@ -77,6 +226,7 @@ class ProfileSetupScreen extends ConsumerWidget {
             vertical: AppDimensions.spacing8,
           ),
           child: Form(
+            key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -87,25 +237,22 @@ class ProfileSetupScreen extends ConsumerWidget {
                   backgroundColor: const Color(0xFFDDE9FF),
                 ),
                 const SizedBox(height: AppDimensions.spacing16),
-
-                // Section title
                 Text(
                   'Basic Information',
                   style: AppTextStyles.headlineSmall
                       .copyWith(color: const Color(0xFF0000A8), fontSize: 18),
                 ),
                 const SizedBox(height: AppDimensions.spacing12),
-
-                // Form fields
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // First Name (now uses controller)
                         TextFormField(
-                          initialValue: state.firstName,
+                          controller: _firstNameController,
                           decoration: InputDecoration(
-                            labelText: 'First Name *',
+                            labelText: 'First Name',
                             labelStyle:
                                 AppTextStyles.inputLabel.copyWith(fontSize: 18),
                             floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -124,14 +271,23 @@ class ProfileSetupScreen extends ConsumerWidget {
                             ),
                           ),
                           style: AppTextStyles.inputText.copyWith(fontSize: 17),
-                          onChanged: viewModel.updateFirstName,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'First name is required';
+                            }
+                            if (!RegExp(r'^[A-Z][a-zA-Z ]*$').hasMatch(value)) {
+                              return 'First letter must be uppercase';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
 
+                        // Last Name (controller)
                         TextFormField(
-                          initialValue: state.lastName,
+                          controller: _lastNameController, 
                           decoration: InputDecoration(
-                            labelText: 'Last Name *',
+                            labelText: 'Last Name',
                             labelStyle:
                                 AppTextStyles.inputLabel.copyWith(fontSize: 18),
                             floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -150,17 +306,26 @@ class ProfileSetupScreen extends ConsumerWidget {
                             ),
                           ),
                           style: AppTextStyles.inputText.copyWith(fontSize: 17),
-                          onChanged: viewModel.updateLastName,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Last name is required';
+                            }
+                            if (!RegExp(r'^[A-Z][a-zA-Z ]*$').hasMatch(value)) {
+                              return 'First letter must be uppercase';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
 
+                        // Email (unchanged)
                         TextFormField(
                           initialValue: state.email,
                           keyboardType: TextInputType.emailAddress,
                           autofillHints: const [AutofillHints.email],
                           textInputAction: TextInputAction.next,
                           decoration: InputDecoration(
-                            labelText: 'Email *',
+                            labelText: 'Email',
                             labelStyle:
                                 AppTextStyles.inputLabel.copyWith(fontSize: 18),
                             floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -180,50 +345,86 @@ class ProfileSetupScreen extends ConsumerWidget {
                           ),
                           style: AppTextStyles.inputText.copyWith(fontSize: 17),
                           onChanged: viewModel.updateEmail,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Email is required';
+                            }
+
+                            // Check for @ symbol
+                            if (!value.contains('@')) {
+                              return 'Email is invalid';
+                            }
+
+                            // Check for domain with TLD (. after @)
+                            final parts = value.split('@');
+                            if (parts.length != 2 || !parts[1].contains('.')) {
+                              return 'Email is invalid';
+                            }
+
+                            // Basic email format validation
+                            final emailRegex = RegExp(
+                              r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                              caseSensitive: false,
+                            );
+
+                            if (!emailRegex.hasMatch(value.trim())) {
+                              return 'Email is invalid';
+                            }
+
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
 
+                        // Phone (controller + auto-format)
                         TextFormField(
-                          initialValue: state.phone.isEmpty ? '+64' : state.phone,
+                          controller: _phoneController, 
                           keyboardType: TextInputType.phone,
-                          autofillHints: [AutofillHints.email],
+                          autofillHints: const [AutofillHints.telephoneNumber],
                           decoration: InputDecoration(
-                            labelText: 'Phone *',
-                            labelStyle:
-                                AppTextStyles.inputLabel.copyWith(fontSize: 18),
+                            labelText: 'Phone',
+                            labelStyle: AppTextStyles.inputLabel.copyWith(fontSize: 18),
                             floatingLabelBehavior: FloatingLabelBehavior.always,
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 10),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.surfaceVariant),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: const Color(0xFF0000A8), width: 1.5),
+                              borderSide: BorderSide(color: Color(0xFF0000A8), width: 1.5),
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                           style: AppTextStyles.inputText.copyWith(fontSize: 17),
-                          onChanged: (value) {
-                            var cleaned = value.trim();
-                            if (cleaned.isEmpty) {
-                              cleaned = '+64';
-                            } else if (!cleaned.startsWith('+64')) {
-                              // Remove any leading plus signs and prepend +64
-                              cleaned = '+64' + cleaned.replaceFirst(RegExp(r'^\++'), '');
+
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Phone number is required';
                             }
-                            viewModel.updatePhone(cleaned);
+
+                            if (!value.startsWith('+64 ')) {
+                              return 'Must start with +64';
+                            }
+
+                            final digits = value.replaceAll(RegExp(r'[^\d]'), '');
+                            final nzDigits = digits.length >= 2 ? digits.substring(2) : ''; 
+
+                            if (nzDigits.length != 9) {
+                              return 'Phone number is required';
+                            }
+
+                            return null;
                           },
                         ),
                         const SizedBox(height: 16),
 
+                        // Business name and the rest unchanged (you can keep as-is)
                         TextFormField(
                           initialValue: state.businessName,
                           decoration: InputDecoration(
-                            labelText: 'Business Name *',
+                            labelText: 'Business Name',
                             labelStyle:
                                 AppTextStyles.inputLabel.copyWith(fontSize: 18),
                             floatingLabelBehavior: FloatingLabelBehavior.always,
@@ -356,7 +557,6 @@ class ProfileSetupScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 8),
                 const SizedBox(height: 8),
               ],
@@ -368,8 +568,8 @@ class ProfileSetupScreen extends ConsumerWidget {
   }
 }
 
-/// Small helper widget to display the picked avatar (uses in-memory bytes)
-/// and provide a reliable remove action that evicts caches on Android emulators.
+// Small helper widget to display the picked avatar (uses in-memory bytes)
+// and provide a reliable remove action that evicts caches on Android emulators.
 class _AvatarPreview extends StatefulWidget {
   final File? pickedImage;
   final Future<void> Function()? onRemove;

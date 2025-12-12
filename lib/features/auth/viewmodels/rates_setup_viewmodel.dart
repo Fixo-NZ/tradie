@@ -36,7 +36,7 @@ class RatesSetupViewModel extends StateNotifier<RatesSetupState> {
     state = state.copyWith(callOut: value ?? false);
   }
 
-  /// Convert "HH:MM" string to integer hours for backend
+  // Convert "HH:MM" string to integer hours for backend
   int? get minimumHoursInt {
     if (state.minimumHoursString.isEmpty) return null;
     final parts = state.minimumHoursString.split(':');
@@ -45,7 +45,7 @@ class RatesSetupViewModel extends StateNotifier<RatesSetupState> {
     return hours + (minutes >= 30 ? 1 : 0); // round up if minutes >= 30
   }
 
-  /// Save rates to backend (null-safe & optional fields)
+  // Save rates to backend (null-safe & optional fields)
   Future<bool> saveRates() async {
     try {
       final api = RatesApiService();
@@ -61,7 +61,7 @@ class RatesSetupViewModel extends StateNotifier<RatesSetupState> {
       );
       return success;
     } catch (e) {
-      print('❌ Failed to save rates: $e');
+      print('Failed to save rates: $e');
       return false;
     }
   }

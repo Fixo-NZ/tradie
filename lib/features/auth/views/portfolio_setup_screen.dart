@@ -187,7 +187,7 @@ class PortfolioSetupScreen extends ConsumerWidget {
   }
 }
 
-/// Dashed border container (same as yours)
+// Dashed border container (same as yours)
 class DashedContainer extends StatelessWidget {
   final Widget? child;
   final double? height;

@@ -181,7 +181,7 @@ class AvailabilitySetupScreen extends ConsumerWidget {
               Text('Working Hours', style: AppTextStyles.bodyLarge),
               const SizedBox(height: AppDimensions.spacing8),
 
-              //  Select working time range ("From" and "To")
+              // Select working time range ("From" and "To")
               Row(
                 children: [
                   // From time picker
@@ -243,7 +243,7 @@ class AvailabilitySetupScreen extends ConsumerWidget {
 
               const SizedBox(height: AppDimensions.spacing16),
 
-              //  Emergency Availability section (toggle switch)
+              // Emergency Availability section (toggle switch)
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
@@ -259,16 +259,15 @@ class AvailabilitySetupScreen extends ConsumerWidget {
                       value: state.emergencyAvailability,
                       activeColor: const Color.fromRGBO(9, 12, 155, 1.0),
                       checkColor: Colors.white,
-                      onChanged: (value) =>
-                          viewModel.setEmergency(value ?? false),
+                      onChanged: (value) => viewModel.setEmergency(value ?? false),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Emergency Availability',
-                              style: AppTextStyles.titleMedium),
+                          Text(
+                            'Emergency Availability', style: AppTextStyles.titleMedium),
                           const SizedBox(height: 6),
                           Text(
                             'Customers can contact you for urgent jobs outside your regular working hours',
@@ -284,7 +283,7 @@ class AvailabilitySetupScreen extends ConsumerWidget {
 
               const SizedBox(height: AppDimensions.spacing20),
 
-              //  Optional calendar button to view/edit specific dates
+              // Optional calendar button to view/edit specific dates
               Text('Availability Calendar', style: AppTextStyles.bodyLarge),
               const SizedBox(height: AppDimensions.spacing12),
               Center(

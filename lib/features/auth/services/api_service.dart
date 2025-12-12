@@ -3,15 +3,18 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = "http://192.168.4.111:8000/api/tradie";
+  // Base URL for all API requests
+  //static const String baseUrl = "http://192.168.4.111:8000/api/tradie";
+  static const String baseUrl = "http://10.0.2.2:8000/api/tradie";   //For testing - Kath
 
   static const String token =
-      "7|XULoPEKfwdg3MrihDS7AcKfx55OEOXezA5KSyXNNc7d32ead";
+      "21|PCy519KIhPLm4BGBpZHLjtebcR4cKPZcCIJOWxN28564712c"; //For testing - Kath 
 
-  // static const String token =
-  //     "20|ANvW0nyB5qXnngNF01fVwBwIdEb6oFw1MbLtYtULa00a62cc";
+  // Temporary token for testing (normally stored securely)
+  //static const String token =
+  //    "20|ANvW0nyB5qXnngNF01fVwBwIdEb6oFw1MbLtYtULa00a62cc";
 
-  /// ✅ Generic GET
+  // Generic GET
   Future<Map<String, dynamic>> get(String endpoint) async {
     final uri = Uri.parse('$baseUrl$endpoint');
     
@@ -65,7 +68,7 @@ class ApiService {
     final streamedResponse = await request.send();
     final responseBody = await streamedResponse.stream.bytesToString();
 
-    print("🔹 Laravel Response: $responseBody");
+    print("Laravel Response: $responseBody");
 
     return {
       'statusCode': streamedResponse.statusCode,
@@ -82,7 +85,7 @@ class ApiService {
 
   // Log API responses for debugging
   void _logResponse(http.Response response) {
-    print("🔹 [${response.statusCode}] ${response.request?.url}");
+    print("[${response.statusCode}] ${response.request?.url}");
     print("Response body: ${response.body}");
   }
 }

@@ -31,14 +31,14 @@ class RatesApiService extends ApiService {
 
     // Prepare request body
     final Map<String, dynamic> body = {
-    'rate_type': chargeType, 
-    if (parsedRate != null) 'standard_rate': parsedRate,
-    if (minimumHours != null) 'minimum_hours': minimumHours,
-    if (description?.isNotEmpty == true)
-      'standard_rate_description': description,
-    'after_hours': afterHours == true ? 1 : 0,  
-  'call_out_fee': callOut == true ? 1 : 0,     
-  };
+      'rate_type': chargeType, 
+        if (parsedRate != null) 'standard_rate': parsedRate,
+        if (minimumHours != null) 'minimum_hours': minimumHours,
+        if (description?.isNotEmpty == true)
+          'standard_rate_description': description,
+          'after_hours': afterHours == true ? 1 : 0,  
+          'call_out_fee': callOut == true ? 1 : 0,     
+    };
 
 
     // Send POST request to Laravel endpoint
@@ -48,14 +48,14 @@ class RatesApiService extends ApiService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        print("✅ Rates saved successfully!");
+        print("Rates saved successfully!");
         return true;
       } else {
-        print("❌ Failed to save rates: ${data['error'] ?? data}");
+        print("Failed to save rates: ${data['error'] ?? data}");
         return false;
       }
     } catch (e) {
-      print("❌ Error decoding response: $e");
+      print("Error decoding response: $e");
       return false;
     }
   }

@@ -3,7 +3,7 @@ import 'package:tradie/features/auth/services/api_service.dart';
 class DoneApiService {
   final ApiService _apiService = ApiService();
 
-  /// ✅ Fetch profile data (handles nested Laravel response)
+  // Fetch profile data (handles nested Laravel response)
   Future<Map<String, dynamic>> fetchProfile() async {
     try {
       final response = await _apiService.get('/profile-setup/get-profile');
@@ -19,12 +19,12 @@ class DoneApiService {
         throw Exception(response['error']?['message'] ?? 'Invalid profile data');
       }
     } catch (e) {
-      print("❌ Error fetching profile: $e");
+      print("Error fetching profile: $e");
       rethrow;
     }
   }
 
-  /// ✅ Fetch skills data
+  // Fetch skills data
   Future<List<dynamic>> fetchSkills() async {
     try {
       final response = await _apiService.get('/profile-setup/get-skills');
@@ -37,7 +37,7 @@ class DoneApiService {
         return [];
       }
     } catch (e) {
-      print("❌ Error fetching skills: $e");
+      print("Error fetching skills: $e");
       rethrow;
     }
   }

@@ -6,7 +6,7 @@ import 'api_service.dart';
 import 'dart:convert';
 
 class ProfileApiService extends ApiService {
-  /// ✅ 1. Submit Basic Info (now supports avatar upload too)
+  // Submit Basic Info (now supports avatar upload too)
   Future<Map<String, dynamic>> submitBasicInfo({
     required String firstName,
     required String lastName,
@@ -14,7 +14,7 @@ class ProfileApiService extends ApiService {
     required String phone,
     required String businessName,
     String? professionalBio,
-    File? avatarImage, // 👈 added this parameter
+    File? avatarImage, 
   }) async {
     try {
       final dio = Dio();
@@ -55,7 +55,7 @@ class ProfileApiService extends ApiService {
         'body': response.data,
       };
     } catch (e) {
-      print("⚠️ Error submitting basic info: $e");
+      print("Error submitting basic info: $e");
       return {
         'success': false,
         'statusCode': 0,
@@ -64,7 +64,7 @@ class ProfileApiService extends ApiService {
     }
   }
 
-  /// ✅ 2. Upload Avatar (uses correct Laravel route)
+  // Upload Avatar (uses correct Laravel route)
   Future<Response> uploadAvatar(File image, {String? token}) async {
     final dio = Dio();
 
@@ -94,16 +94,15 @@ class ProfileApiService extends ApiService {
       contentType: 'multipart/form-data',
     );
 
-    // ✅ Corrected Laravel route
     final url = '${ApiService.baseUrl}/profile-setup/upload-avatar';
-    print('📤 Uploading avatar to URL: $url');
+    print('Uploading avatar to URL: $url');
 
     final response = await dio.post(url, data: formData, options: options);
-    print("✅ Upload response: ${response.data}");
+    print("Upload response: ${response.data}");
     return response;
   }
 
-  /// ✅ 3. Get Profile Info (fetch latest user profile after upload)
+  // Get Profile Info (fetch latest user profile after upload)
   Future<Map<String, dynamic>> getProfile({String? token}) async {
     try {
       final dio = Dio();
@@ -117,27 +116,27 @@ class ProfileApiService extends ApiService {
         },
       );
 
-      // 👇 Adjust this URL if your Laravel route is different
+      // Adjust this URL if your Laravel route is different
       final url = '${ApiService.baseUrl}/profile-setup/get-profile';
-      print('📥 Fetching profile from URL: $url');
+      print('Fetching profile from URL: $url');
 
       final response = await dio.get(url, options: options);
 
       if (response.statusCode == 200) {
-        print('✅ Profile fetched: ${response.data}');
+        print('Profile fetched: ${response.data}');
         return {
           'success': true,
           'data': response.data,
         };
       } else {
-        print('⚠️ Failed to fetch profile: ${response.statusCode}');
+        print('Failed to fetch profile: ${response.statusCode}');
         return {
           'success': false,
           'data': null,
         };
       }
     } catch (e) {
-      print('❌ Error fetching profile: $e');
+      print('Error fetching profile: $e');
       return {
         'success': false,
         'data': null,

@@ -8,7 +8,7 @@ import '../../../core/widgets/navigation_widgets.dart';
 import 'confirmation_screen.dart';
 import '../viewmodels/done_viewmodel.dart';
 
-// ✅ Riverpod provider
+// Riverpod provider
 final doneProvider = StateNotifierProvider<DoneViewModel, DoneState>(
   (ref) => DoneViewModel(),
 );
@@ -24,7 +24,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
   @override
   void initState() {
     super.initState();
-    // ✅ Automatically fetch profile with slight delay for smoother transition
+    // Automatically fetch profile with slight delay for smoother transition
     Future.microtask(() async {
       await Future.delayed(const Duration(milliseconds: 500));
       ref.read(doneProvider.notifier).loadProfile();
@@ -63,7 +63,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ✅ Progress bar
+              // Progress bar
               LinearProgressIndicator(
                 value: 1.0,
                 minHeight: 4,
@@ -72,7 +72,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // ✅ Profile Picture (fixed URL handling)
+              // Profile Picture (fixed URL handling)
               Center(
                 child: Builder(
                   builder: (context) {
@@ -115,7 +115,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // ✅ Name + Email
+              // Name + Email
               Center(
                 child: Column(
                   children: [
@@ -152,7 +152,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
               ),
               const SizedBox(height: AppDimensions.spacing24),
 
-              // ✅ Edit Profile button
+              // Edit Profile button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -178,7 +178,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
               ),
               const SizedBox(height: AppDimensions.spacing24),
 
-              // ✅ Tabs
+              // Tabs
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -204,7 +204,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // ✅ About Me
+              // About Me
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -246,7 +246,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
               ),
               const SizedBox(height: AppDimensions.spacing16),
 
-              // ✅ My Skills
+              // My Skills
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -288,7 +288,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
   }
 }
 
-// ✅ Tab Button widget
+// Tab Button widget
 class _TabButton extends StatelessWidget {
   final String label;
   final bool selected;
@@ -337,7 +337,7 @@ class _TabButton extends StatelessWidget {
   }
 }
 
-// ✅ Skill chip widget
+// Skill chip widget
 class _SkillChip extends StatelessWidget {
   final String label;
 

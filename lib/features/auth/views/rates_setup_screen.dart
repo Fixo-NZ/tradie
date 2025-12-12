@@ -15,7 +15,7 @@ final ratesSetupProvider =
 class RatesSetupScreen extends ConsumerWidget {
   const RatesSetupScreen({super.key});
 
-  // ✅ Handles save + navigation logic safely
+  //Handles save + navigation logic safely
   void _onContinue(BuildContext context, WidgetRef ref) async {
     final viewModel = ref.read(ratesSetupProvider.notifier);
 
@@ -33,7 +33,7 @@ class RatesSetupScreen extends ConsumerWidget {
           .push(MaterialPageRoute(builder: (_) => const DoneScreen()));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ Failed to save rates')),
+        const SnackBar(content: Text('Failed to save rates')),
       );
     }
   }
@@ -106,8 +106,6 @@ class RatesSetupScreen extends ConsumerWidget {
                 backgroundColor: const Color(0xFFDDE9FF),
               ),
               const SizedBox(height: AppDimensions.spacing16),
-
-              // ====== HEADER ======
               Text(
                 'Your Portfolio',
                 style: AppTextStyles.headlineSmall.copyWith(
@@ -131,8 +129,6 @@ class RatesSetupScreen extends ConsumerWidget {
                     .copyWith(color: AppColors.onSurfaceVariant),
               ),
               const SizedBox(height: AppDimensions.spacing16),
-
-              // ====== CHARGE MODE ======
               Text(
                 'How do you prefer to charge?',
                 style: AppTextStyles.bodySmall
@@ -168,8 +164,6 @@ class RatesSetupScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: AppDimensions.spacing16),
-
-              // ====== STANDARD RATE & MINIMUM HOURS DROPDOWN ======
               Text(
                 'Standard Rate & Minimum Hours',
                 style: AppTextStyles.bodyLarge
@@ -246,8 +240,6 @@ class RatesSetupScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: AppDimensions.spacing12),
-
-              // ====== DESCRIPTION ======
               const Text(
                 'Description (Optional)',
                 style:
@@ -271,8 +263,6 @@ class RatesSetupScreen extends ConsumerWidget {
                 onChanged: viewModel.updateDescription,
               ),
               const SizedBox(height: AppDimensions.spacing12),
-
-              // ====== AFTER HOURS ======
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: const Color(0xFFE6E6E6)),
@@ -303,8 +293,6 @@ class RatesSetupScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppDimensions.spacing12),
-
-              // ====== CALL OUT FEE ======
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: const Color(0xFFE6E6E6)),
@@ -334,7 +322,6 @@ class RatesSetupScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-
               const SizedBox(height: AppDimensions.spacing20),
               const SizedBox(height: 80),
             ],

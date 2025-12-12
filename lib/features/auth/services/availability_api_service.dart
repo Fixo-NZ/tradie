@@ -12,37 +12,37 @@ class AvailabilityApiService extends ApiService {
     final endpoint = '/profile-setup/availability'; 
 
     final body = {
-  if (days.isNotEmpty)
-  "working_hours": days.map((dayName) {
-    final dayMapping = {
-      "Mon": 1,
-      "Tue": 2,
-      "Wed": 3,
-      "Thu": 4,
-      "Fri": 5,
-      "Sat": 6,
-      "Sun": 0,
-    };
+      if (days.isNotEmpty)
+      "working_hours": days.map((dayName) {
+        final dayMapping = {
+          "Mon": 1,
+          "Tue": 2,
+          "Wed": 3,
+          "Thu": 4,
+          "Fri": 5,
+          "Sat": 6,
+          "Sun": 0,
+        };
 
-    return {
-      "day": dayMapping[dayName] ?? 0, // default to Sunday if not found
-      if (fromTime != null && fromTime.isNotEmpty)
-        "start": _convertTo24Hour(fromTime),
-      if (toTime != null && toTime.isNotEmpty)
-        "end": _convertTo24Hour(toTime),
+        return {
+          "day": dayMapping[dayName] ?? 0, 
+          if (fromTime != null && fromTime.isNotEmpty)
+            "start": _convertTo24Hour(fromTime),
+          if (toTime != null && toTime.isNotEmpty)
+            "end": _convertTo24Hour(toTime),
+        };
+      }).toList(),
+      "emergency_available": emergencyAvailable,
     };
-  }).toList(),
-  "emergency_available": emergencyAvailable,
-};
 
     final response = await post(endpoint, body);
     final decoded = jsonDecode(response.body);
 
     if (response.statusCode == 200 && decoded['success'] == true) {
-      print("✅ Availability saved successfully!");
+      print("Availability saved successfully!");
       return true;
     } else {
-      print("❌ Failed to save availability: ${decoded['error'] ?? decoded}");
+      print("Failed to save availability: ${decoded['error'] ?? decoded}");
       return false;
     }
   }
@@ -52,7 +52,7 @@ class AvailabilityApiService extends ApiService {
       final time = DateTime.parse("2024-01-01 ${_to24HourFormat(time12h)}:00");
       return "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
     } catch (e) {
-      print("⚠️ Failed to convert time: $time12h");
+      print("Failed to convert time: $time12h");
       return "00:00";
     }
   }
