@@ -137,12 +137,8 @@ class SkillsViewModel extends StateNotifier<SkillsState> {
     final selectedSkillIds =
         state.skills.where((s) => s.isSelected).map((s) => s.id).toList();
 
-<<<<<<< HEAD
   print("Selected skills (before API): $selectedSkillIds");
   print("Type of skills: ${selectedSkillIds.runtimeType}");
-=======
-    print("🟢 Selected skills (before API): $selectedSkillIds");
->>>>>>> f92fede8de9f93b9d130c4d8ccb47e1a2de544fd
 
     final serviceLocation = {
       "address": address,

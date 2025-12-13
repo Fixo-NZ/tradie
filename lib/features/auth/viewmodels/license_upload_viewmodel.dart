@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../services/license_upload_api_service.dart';
 
 class LicenseFile {
   final String name;
@@ -76,16 +78,61 @@ class LicenseUploadViewModel extends StateNotifier<LicenseUploadState> {
     }
 
     state = state.copyWith(isLoading: true, errorMessage: null);
-    
+    print('📋 submitLicenseFiles: uploading ${licenseFiles.length} licenses + ${idFiles.length} IDs');
     try {
-      // Simulate API call - integrate with your actual API service
-      await Future.delayed(const Duration(seconds: 2));
+      final api = LicenseUploadApiService();
+
+      // Convert stored paths to File objects
+      final licenseFileObjs = licenseFiles.map((f) => File(f.path)).toList();
+      final idFileObjs = idFiles.map((f) => File(f.path)).toList();
+
+      final result = await api.submitLicenseDocuments(
+        licenseFiles: licenseFileObjs,
+        idFiles: idFileObjs,
+      );
+
+      print('📋 submitLicenseFiles result: $result');
+
       state = state.copyWith(isLoading: false);
-      return true;
+
+      if (result['success'] == true) {
+        print('All files uploaded successfully');
+        return true;
+      } else {
+        // Extract error message from response body if available
+        String errorMsg = 'Failed to upload documents';
+        
+        final body = result['body'];
+        final statusCode = result['statusCode'] ?? 0;
+        
+        // Try to extract message from parsed JSON response
+        if (body is Map) {
+          if (body.containsKey('message')) {
+            errorMsg = body['message'].toString();
+          } else if (body.containsKey('error')) {
+            errorMsg = body['error'].toString();
+          }
+        }
+        
+        // Add status code for debugging
+        if (statusCode == 401) {
+          errorMsg = 'Unauthorized - please log in again';
+        } else if (statusCode == 422) {
+          errorMsg = 'Validation error - check file format and size';
+        } else if (statusCode >= 400) {
+          errorMsg = 'Server error: $statusCode - ${result['error'] ?? errorMsg}';
+        }
+        
+        print('Upload failed: $errorMsg');
+        state = state.copyWith(
+          errorMessage: errorMsg,
+        );
+        return false;
+      }
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Failed to upload documents',
+        errorMessage: 'Failed to upload documents: ${e.toString()}',
       );
       return false;
     }

@@ -1,11 +1,14 @@
 import 'dart:io';
+import 'dart:convert';
+import 'dart:async';
 import 'package:http/http.dart' as http;
+import '../../../core/constants/api_constants.dart';
+import 'api_service.dart';
 
 class LicenseUploadApiService {
-  static const String baseUrl = "http://192.168.4.134:8000/api/tradie";
-
-  static const String token =
-      "7|XULoPEKfwdg3MrihDS7AcKfx55OEOXezA5KSyXNNc7d32ead";
+  // Use shared ApiService baseUrl and token so environment is consistent
+  String get _baseUrl => ApiService.baseUrl;
+  String get _token => ApiService.token;
 
   /// Upload a single license or ID file
   Future<Map<String, dynamic>> uploadLicenseFile({
@@ -13,11 +16,20 @@ class LicenseUploadApiService {
     required String fileType, // 'license' or 'id'
   }) async {
     try {
-      final uri = Uri.parse('$baseUrl/profile-setup/licenses');
+      final uri = Uri.parse('$_baseUrl${ApiConstants.licenseUploadEndpoint}');
       final request = http.MultipartRequest('POST', uri);
 
+      // Log request details
+      final tokenMasked = _token.length > 10 ? '${_token.substring(0, 10)}...' : _token;
+      final fileSize = await file.length();
+      print('License Upload:');
+      print('URL: $uri');
+      print('File: ${file.path} (${fileSize} bytes)');
+      print('Type: $fileType');
+      print('Token: $tokenMasked');
+
       request.headers.addAll({
-        'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer ${_token}',
         'Accept': 'application/json',
       });
 
@@ -28,18 +40,44 @@ class LicenseUploadApiService {
         file.path,
       ));
 
-      final streamedResponse = await request.send();
+      print('⏳ Sending request...');
+      final streamedResponse = await request.send().timeout(
+        const Duration(seconds: 60), // 60 second timeout for large files
+        onTimeout: () {
+          print('Upload timeout - server took too long to respond');
+          throw TimeoutException('Upload timeout after 60 seconds');
+        },
+      );
+
+      print('Reading response...');
       final responseBody = await streamedResponse.stream.bytesToString();
 
-      print("🔹 License Upload Response: $responseBody");
+      print('Response Status: ${streamedResponse.statusCode}');
+      print('Response Body: $responseBody');
+
+      final isSuccess = streamedResponse.statusCode == 200 || streamedResponse.statusCode == 201;
+      
+      // Parse JSON response
+      dynamic parsedBody;
+      try {
+        parsedBody = jsonDecode(responseBody);
+      } catch (_) {
+        parsedBody = responseBody;
+      }
+
+      // Check if backend explicitly returned success flag
+      final backendSuccess = (parsedBody is Map && parsedBody['success'] == true) || isSuccess;
 
       return {
-        'success': streamedResponse.statusCode == 200,
-        'body': responseBody,
+        'success': backendSuccess,
+        'statusCode': streamedResponse.statusCode,
+        'body': parsedBody,
       };
     } catch (e) {
+      print('License Upload Error: $e');
       return {
         'success': false,
+        'statusCode': 0,
         'error': e.toString(),
       };
     }

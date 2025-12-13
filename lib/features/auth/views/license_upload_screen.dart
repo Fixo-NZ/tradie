@@ -34,10 +34,34 @@ class LicenseUploadScreen extends ConsumerWidget {
   }
 
   Future<void> _onContinue(BuildContext context, WidgetRef ref) async {
-    if (context.mounted) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const SkillsSetupScreen()),
-      );
+    final vm = ref.read(licenseUploadViewModelProvider.notifier);
+    
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // Submit files to backend
+    final success = await vm.submitLicenseFiles();
+
+    if (context.mounted) Navigator.pop(context); // close loader
+
+    if (success) {
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const SkillsSetupScreen()),
+        );
+      }
+    } else {
+      final state = ref.read(licenseUploadViewModelProvider);
+      final errorMsg = state.errorMessage ?? 'Failed to upload files';
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg)),
+        );
+      }
     }
   }
 

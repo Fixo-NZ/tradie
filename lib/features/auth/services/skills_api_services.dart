@@ -37,15 +37,9 @@ class SkillsApiService extends ApiService {
 
       return {
         'success': response.statusCode == 200 &&
-<<<<<<< HEAD
             (data['success'] == true || data['success'] == 1), 
         'statusCode': response.statusCode, 
         'body': data,                    
-=======
-            (data['success'] == true || data['success'] == 1),
-        'statusCode': response.statusCode,
-        'body': data,
->>>>>>> f92fede8de9f93b9d130c4d8ccb47e1a2de544fd
       };
 
     } catch (e) {

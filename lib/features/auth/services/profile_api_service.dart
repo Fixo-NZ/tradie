@@ -36,6 +36,8 @@ class ProfileApiService extends ApiService {
           ),
       });
 
+      // Allow Dio to return non-2xx responses instead of throwing so we can
+      // inspect server error bodies (useful for debugging 500s).
       final response = await dio.post(
         '${ApiService.baseUrl}/profile-setup/basic-info',
         data: formData,
@@ -45,12 +47,19 @@ class ProfileApiService extends ApiService {
             'Accept': 'application/json',
           },
           contentType: 'multipart/form-data',
+          validateStatus: (status) => true,
         ),
       );
 
+      // Log server response for debugging (especially for 500 errors)
+      try {
+        print('Basic info response status: ${response.statusCode}');
+        print('Basic info response body: ${response.data}');
+      } catch (_) {}
+
       return {
         'success': response.statusCode == 200 &&
-            (response.data['success'] == true || response.data['success'] == 1),
+            (response.data is Map && (response.data['success'] == true || response.data['success'] == 1)),
         'statusCode': response.statusCode,
         'body': response.data,
       };
@@ -94,7 +103,8 @@ class ProfileApiService extends ApiService {
       contentType: 'multipart/form-data',
     );
 
-    final url = '${ApiService.baseUrl}/profile-setup/upload-avatar';
+    // Backend defines upload-avatar at the top-level tradie prefix (not under profile-setup)
+    final url = '${ApiService.baseUrl}${ApiConstants.uploadAvatarEndpoint}';
     print('Uploading avatar to URL: $url');
 
     final response = await dio.post(url, data: formData, options: options);

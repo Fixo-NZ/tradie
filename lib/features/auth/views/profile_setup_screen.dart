@@ -58,7 +58,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     super.dispose();
   }
 
-  // Helper: Capitalize the first letter of each word
+  // Capitalize the first letter of each word
   String capitalizeWords(String value) {
     if (value.trim().isEmpty) return value;
     return value.split(' ').map((word) {
@@ -108,27 +108,22 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     _isFormatting = false;
   }
 
-  // Phone formatting listener: enforces "+64 " prefix and "21 XXXX XXX" formatting
   void _onPhoneChanged() {
     if (_isFormatting) return;
     _isFormatting = true;
 
     String current = _phoneController.text;
 
-    // If user deleted prefix, restore it
     if (!current.startsWith('+64 ')) {
       current = '+64 ';
     }
 
-    // Extract digits only
     String digitsOnly = current.replaceAll(RegExp(r'[^\d]'), '');
 
-    // Remove leading '64' if present to get NZ local digits
     if (digitsOnly.startsWith('64')) {
       digitsOnly = digitsOnly.substring(2);
     }
 
-    // Limit to 9 digits (NZ numbers are 9 digits after country code)
     if (digitsOnly.length > 9) {
       digitsOnly = digitsOnly.substring(0, 9);
     }
@@ -136,7 +131,6 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     // Build formatted string: +64 XX XXXX XXX (2-4-3 groups)
     final buffer = StringBuffer('+64 ');
     if (digitsOnly.length >= 1) {
-      // first group ideally 2 digits (e.g. 21)
       if (digitsOnly.length >= 2) {
         buffer.write(digitsOnly.substring(0, 2));
       } else {
@@ -186,14 +180,32 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ContinueFloatingButton(
         onPressed: () async {
-          // Validate the form first; validators will provide field-level errors
-          final isValid = _formKey.currentState?.validate() ?? false;
-          if (!isValid) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Enter valid email')),
-            );
-            return;
-          }
+        // Trigger form validation
+        final isValid = _formKey.currentState?.validate() ?? false;
+
+        if (!isValid) {
+          final state = ref.read(profileSetupViewModelProvider);
+
+          // 🔹 Check if any required field is empty
+          final hasEmptyRequiredField =
+              state.firstName.isEmpty ||
+              state.lastName.isEmpty ||
+              state.email.isEmpty ||
+              state.phone.isEmpty ||
+              state.businessName.isEmpty;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              // 🔹 Show correct message based on validation result
+              content: Text(
+                hasEmptyRequiredField
+                    ? 'Fill out all required field' // required fields missing
+                    : 'Email is invalid',           // only email is invalid
+              ),
+            ),
+          );
+          return;
+        }
 
           showDialog(
             context: context,
@@ -203,40 +215,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
           final success = await viewModel.submitBasicInfo();
 
-<<<<<<< HEAD
           if (context.mounted) Navigator.pop(context); // close loader
 
-          if (success) {
-            if (context.mounted) {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SkillsSetupScreen()),
-              );
-            }
-          } else {
+            if (success) {
+              if (context.mounted) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LicenseUploadScreen()),
+                );
+              }
+            } else {
             final message = state.errorMessage ?? 'Failed to save profile';
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(message)));
           }
         },
-=======
-    if (success) {
-      if (context.mounted) {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const LicenseUploadScreen()),
-        );
-      }
-    } else {
-      final message = state.errorMessage ?? 'Failed to save profile';
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
-    }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Please fill in all required fields')),
-    );
-  }
-},
->>>>>>> f92fede8de9f93b9d130c4d8ccb47e1a2de544fd
         backgroundColor: const Color(0xFF0000A8),
       ),
       body: SafeArea(
@@ -464,6 +456,12 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           ),
                           style: AppTextStyles.inputText.copyWith(fontSize: 17),
                           onChanged: viewModel.updateBusinessName,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Business name is required';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
 
