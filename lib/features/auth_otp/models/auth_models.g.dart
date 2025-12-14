@@ -98,6 +98,11 @@ RegistrationRequest _$RegistrationRequestFromJson(Map<String, dynamic> json) =>
       city: json['city'] as String?,
       state: json['state'] as String?,
       zipCode: json['zip_code'] as String?,
+      businessName: json['business_name'] as String?,
+      licenseNumber: json['license_number'] as String?,
+      yearsExperience: (json['years_experience'] as num?)?.toInt(),
+      hourlyRate: (json['hourly_rate'] as num?)?.toDouble(),
+      serviceRadius: (json['service_radius'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$RegistrationRequestToJson(
@@ -114,6 +119,11 @@ Map<String, dynamic> _$RegistrationRequestToJson(
   'city': instance.city,
   'state': instance.state,
   'zip_code': instance.zipCode,
+  'business_name': instance.businessName,
+  'license_number': instance.licenseNumber,
+  'years_experience': instance.yearsExperience,
+  'hourly_rate': instance.hourlyRate,
+  'service_radius': instance.serviceRadius,
 };
 
 RegistrationResponse _$RegistrationResponseFromJson(

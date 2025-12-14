@@ -9,7 +9,7 @@ import '../models/auth_models.dart';
 class AuthRepository {
   final ApiClient _apiClient = ApiClient();
   final SecureStorageService _storage = SecureStorageService();
-
+  
   /// Save token to both storage services to ensure synchronization
   Future<void> _saveTokenToAllStorages(String token) async {
     await _storage.saveToken(token);
@@ -28,7 +28,7 @@ class AuthRepository {
       if (responseData == null || responseData is! Map<String, dynamic>) {
         throw Exception('Invalid OTP response format');
       }
-
+      
       // Laravel returns { success: true, message: "...", otp_code: "123456" }
       return OtpResponse(
         success: responseData['success'] is bool ? responseData['success'] as bool : true,
@@ -55,19 +55,19 @@ class AuthRepository {
       if (responseData == null || responseData is! Map<String, dynamic>) {
         throw Exception('Invalid OTP verification response format');
       }
-
+      
       // Parse Laravel response structure
       User? user;
       String? token;
-
+      
       if (responseData['status'] == 'existing_user') {
         // Extract user from data.user
-        if (responseData['data'] != null &&
+        if (responseData['data'] != null && 
             responseData['data'] is Map<String, dynamic>) {
           final dataMap = responseData['data'] as Map<String, dynamic>;
           if (dataMap['user'] != null && dataMap['user'] is Map<String, dynamic>) {
             final userData = dataMap['user'] as Map<String, dynamic>;
-
+            
             // Laravel verify-otp returns simplified user object, but we need full user
             // So we'll fetch the full user profile after getting the token
             // For now, create a minimal user object
@@ -96,7 +96,7 @@ class AuthRepository {
             );
           }
         }
-
+        
         // Extract token from authorisation.access_token
         if (responseData['authorisation'] != null &&
             responseData['authorisation'] is Map<String, dynamic>) {
@@ -105,11 +105,11 @@ class AuthRepository {
             token = auth['access_token'] as String;
           }
         }
-
+        
         // Save token and user data
         if (token != null) {
           await _saveTokenToAllStorages(token);
-
+          
           // Fetch full user profile after getting token
           try {
             final fullUser = await getCurrentUser();
@@ -125,7 +125,7 @@ class AuthRepository {
           await _storage.saveUserData(jsonEncode(user.toJson()));
         }
       }
-
+      
       final otpResponse = OtpVerificationResponse(
         status: responseData['status'] is String ? responseData['status'] as String : 'new_user',
         message: responseData['message'] is String ? responseData['message'] as String : '',
@@ -154,160 +154,61 @@ class AuthRepository {
       if (responseData == null || responseData is! Map<String, dynamic>) {
         throw Exception('Invalid login response format');
       }
-
-      // Debug: Print the actual response structure
-      print('🔍 Login Response Structure: $responseData');
-
-      // Laravel can return various structures:
-      // 1. { success: true, data: { user: {...}, token: "..." } }
-      // 2. { success: true, data: { user: {...} }, token: "..." }
-      // 3. { success: true, data: { user: {...}, authorisation: { access_token: "..." } } }
-      // 4. { user: {...}, token: "..." } (direct structure)
-      // 5. { success: true, data: {...} } where data IS the user object
+      
+      // Laravel tradie login returns: { success: true, data: { user: {...}, token: "..." } }
       User? user;
       String? token;
-
-      // First, try to get user from nested data.user
+      
+      // Get user from data.user
       Map<String, dynamic>? userJson;
       if (responseData['data'] != null && responseData['data'] is Map<String, dynamic>) {
         final data = responseData['data'] as Map<String, dynamic>;
-
-        // Check if data itself is the user object (no nested 'user' key)
-        if (data.containsKey('id') &&
-            (data.containsKey('first_name') || data.containsKey('firstName') ||
-                data.containsKey('email'))) {
-          // data IS the user object
-          userJson = data;
-          print('✅ Found user directly in data: $userJson');
-        }
-        // Check if data.user exists
-        else if (data['user'] != null && data['user'] is Map<String, dynamic>) {
+        
+        if (data['user'] != null && data['user'] is Map<String, dynamic>) {
           userJson = data['user'] as Map<String, dynamic>;
-          print('✅ Found user in data.user: $userJson');
         }
-
-        // Try to get token from data.token or data.authorisation.access_token
-        final tokenValue = data['token'];
-        if (tokenValue != null && tokenValue is String) {
-          token = tokenValue;
-          print('✅ Found token in data.token');
-        } else {
-          final authValue = data['authorisation'];
-          if (authValue != null && authValue is Map<String, dynamic>) {
-            final auth = authValue;
-            final accessToken = auth['access_token'];
-            if (accessToken != null && accessToken is String) {
-              token = accessToken;
-              print('✅ Found token in data.authorisation.access_token');
-            }
-          }
+        
+        // Get token from data.token
+        if (data['token'] is String) {
+          token = data['token'] as String;
         }
       }
-
-      // Fallback: check if user is at root level
-      if (userJson == null && responseData['user'] != null &&
-          responseData['user'] is Map<String, dynamic>) {
-        userJson = responseData['user'] as Map<String, dynamic>;
-        print('✅ Found user at root level');
+      
+      if (userJson == null) {
+        throw Exception('User data not found in login response');
       }
-
-      // Fallback: check if token is at root level
-      if (token == null) {
-        final rootToken = responseData['token'];
-        if (rootToken != null && rootToken is String) {
-          token = rootToken;
-          print('✅ Found token at root level');
-        }
-      }
-
-      // Fallback: check authorisation at root level
-      if (token == null) {
-        final rootAuth = responseData['authorisation'];
-        if (rootAuth != null && rootAuth is Map<String, dynamic>) {
-          final auth = rootAuth;
-          final accessToken = auth['access_token'];
-          if (accessToken != null && accessToken is String) {
-            token = accessToken;
-            print('✅ Found token in root authorisation');
-          }
-        }
-      }
-
-      // Parse user if we found userJson
-      if (userJson != null) {
-        try {
-          print('🔍 Parsing user from JSON: $userJson');
-          // Manually create User object with fallback values for required fields
-          // This handles cases where Laravel returns null for required fields
-          user = User(
-            id: userJson['id'] is int
-                ? userJson['id'] as int
-                : (userJson['id'] != null ? int.tryParse(userJson['id'].toString()) ?? 0 : 0),
-            firstName: userJson['first_name'] is String
-                ? userJson['first_name'] as String
-                : (userJson['firstName'] is String
-                ? userJson['firstName'] as String
-                : (userJson['first_name']?.toString() ?? userJson['firstName']?.toString() ?? '')),
-            lastName: userJson['last_name'] is String
-                ? userJson['last_name'] as String
-                : (userJson['lastName'] is String
-                ? userJson['lastName'] as String
-                : (userJson['last_name']?.toString() ?? userJson['lastName']?.toString() ?? '')),
-            email: userJson['email'] is String
-                ? userJson['email'] as String
-                : (userJson['email']?.toString() ?? ''),
-            phone: userJson['phone'] is String ? userJson['phone'] as String : null,
-            middleName: userJson['middle_name'] is String
-                ? userJson['middle_name'] as String
-                : (userJson['middleName'] is String ? userJson['middleName'] as String : null),
-            address: userJson['address'] is String ? userJson['address'] as String : null,
-            city: userJson['city'] is String ? userJson['city'] as String : null,
-            region: userJson['region'] is String
-                ? userJson['region'] as String
-                : (userJson['state'] is String ? userJson['state'] as String : null),
-            postalCode: userJson['postal_code'] is String
-                ? userJson['postal_code'] as String
-                : (userJson['postalCode'] is String
-                ? userJson['postalCode'] as String
-                : (userJson['zip_code'] is String ? userJson['zip_code'] as String : null)),
-            status: userJson['status'] is String
-                ? userJson['status'] as String
-                : (userJson['status']?.toString() ?? 'active'),
-            createdAt: userJson['created_at'] is String
-                ? userJson['created_at'] as String
-                : (userJson['createdAt'] is String ? userJson['createdAt'] as String : null),
-            updatedAt: userJson['updated_at'] is String
-                ? userJson['updated_at'] as String
-                : (userJson['updatedAt'] is String ? userJson['updatedAt'] as String : null),
-          );
-
-          print('✅ User parsed successfully: id=${user.id}, email=${user.email}, firstName=${user.firstName}');
-
-          // Validate that we have at least the essential fields
-          // Note: phone is optional (can be null), so we don't validate it
-          if (user.id == 0 || user.firstName.isEmpty || user.lastName.isEmpty ||
-              user.email.isEmpty) {
-            print('❌ Missing required user fields. User: $user');
-            throw Exception('Missing required user fields. User JSON: $userJson');
-          }
-        } catch (e, stackTrace) {
-          print('❌ Error parsing user: $e');
-          throw Exception('Failed to parse user data: $e\nUser JSON: $userJson\nStack: $stackTrace');
-        }
-      }
-
-      if (user == null) {
-        print('❌ User data not found in login response');
-        throw Exception('User data not found in login response. Response: ${responseData.toString()}');
-      }
-
+      
       if (token == null || token.isEmpty) {
-        print('❌ Token not found. Current token value: $token');
-        throw Exception('Token not found in login response. Response: ${responseData.toString()}');
+        throw Exception('Token not found in login response');
       }
-
-      print('✅ Login successful! User: ${user.email}, Token: ${token.substring(0, 20)}...');
-
+      
+      // Parse user
+      user = User(
+        id: userJson['id'] is int
+            ? userJson['id'] as int
+            : (userJson['id'] != null ? int.tryParse(userJson['id'].toString()) ?? 0 : 0),
+        firstName: userJson['first_name'] is String
+            ? userJson['first_name'] as String
+            : (userJson['first_name']?.toString() ?? ''),
+        lastName: userJson['last_name'] is String
+            ? userJson['last_name'] as String
+            : (userJson['last_name']?.toString() ?? ''),
+        email: userJson['email'] is String
+            ? userJson['email'] as String
+            : (userJson['email']?.toString() ?? ''),
+        phone: userJson['phone'] is String ? userJson['phone'] as String : null,
+        middleName: userJson['middle_name'] is String ? userJson['middle_name'] as String : null,
+        address: userJson['address'] is String ? userJson['address'] as String : null,
+        city: userJson['city'] is String ? userJson['city'] as String : null,
+        region: userJson['region'] is String ? userJson['region'] as String : null,
+        postalCode: userJson['postal_code'] is String ? userJson['postal_code'] as String : null,
+        status: userJson['status'] is String
+            ? userJson['status'] as String
+            : (userJson['status']?.toString() ?? 'active'),
+        createdAt: userJson['created_at'] is String ? userJson['created_at'] as String : null,
+        updatedAt: userJson['updated_at'] is String ? userJson['updated_at'] as String : null,
+      );
+      
       final loginResponse = LoginResponse(
         user: user,
         token: token,
@@ -320,27 +221,19 @@ class AuthRepository {
       await _saveTokenToAllStorages(token);
       await _storage.saveUserData(jsonEncode(user.toJson()));
 
-      // Verify token was saved correctly
-      final verifyToken = await DioClient.instance.getToken();
-      if (verifyToken == null || verifyToken.isEmpty) {
-        print('❌ [AUTH] Token verification failed - token not saved!');
-        throw Exception('Failed to save authentication token');
-      } else {
-        print('✅ [AUTH] Token verified after login: ${verifyToken.substring(0, verifyToken.length > 20 ? 20 : verifyToken.length)}...');
-        print('✅ [AUTH] Token length: ${verifyToken.length}');
-        print('✅ [AUTH] Tokens match: ${verifyToken.trim() == token.trim()}');
-      }
-
       return loginResponse;
     } on DioException catch (e) {
-      // Handle Dio errors (network, HTTP errors, etc.)
       String errorMessage = 'Login failed';
       if (e.response != null) {
         final errorData = e.response?.data;
         if (errorData != null && errorData is Map<String, dynamic>) {
-          errorMessage = (errorData['message'] is String ? errorData['message'] as String : null) ??
-              (errorData['error'] is String ? errorData['error'] as String : null) ??
-              'Login failed: ${e.response?.statusCode}';
+          final errorObj = errorData['error'];
+          if (errorObj != null && errorObj is Map<String, dynamic>) {
+            errorMessage = errorObj['message'] is String ? errorObj['message'] as String : 'Login failed';
+          } else {
+            errorMessage = (errorData['message'] is String ? errorData['message'] as String : null) ?? 
+                        'Login failed: ${e.response?.statusCode}';
+          }
         } else {
           errorMessage = 'Login failed: ${e.response?.statusCode} - ${e.response?.statusMessage}';
         }
@@ -349,7 +242,6 @@ class AuthRepository {
       }
       throw Exception(errorMessage);
     } catch (e) {
-      // Re-throw with more context
       throw Exception('Login error: ${e.toString()}');
     }
   }
@@ -366,14 +258,13 @@ class AuthRepository {
       if (responseData == null || responseData is! Map<String, dynamic>) {
         throw Exception('Invalid registration response format');
       }
-
+      
       // Laravel returns { success: true, data: { user: {...}, token: "..." } }
       final data = responseData['data'];
       if (data == null || data is! Map<String, dynamic>) {
         throw Exception('Invalid registration response: data field missing');
       }
-
-      // Parse user with fallback values to handle null fields
+      
       final userData = data['user'];
       Map<String, dynamic>? userJson;
       if (userData != null && userData is Map<String, dynamic>) {
@@ -381,60 +272,44 @@ class AuthRepository {
       } else {
         throw Exception('User data not found in registration response');
       }
-
+      
       final user = User(
         id: userJson['id'] is int
             ? userJson['id'] as int
             : (userJson['id'] != null ? int.tryParse(userJson['id'].toString()) ?? 0 : 0),
         firstName: userJson['first_name'] is String
             ? userJson['first_name'] as String
-            : (userJson['firstName'] is String
-            ? userJson['firstName'] as String
-            : (userJson['first_name']?.toString() ?? userJson['firstName']?.toString() ?? '')),
+            : (userJson['first_name']?.toString() ?? ''),
         lastName: userJson['last_name'] is String
             ? userJson['last_name'] as String
-            : (userJson['lastName'] is String
-            ? userJson['lastName'] as String
-            : (userJson['last_name']?.toString() ?? userJson['lastName']?.toString() ?? '')),
+            : (userJson['last_name']?.toString() ?? ''),
         email: userJson['email'] is String
             ? userJson['email'] as String
             : (userJson['email']?.toString() ?? ''),
         phone: userJson['phone'] is String ? userJson['phone'] as String : null,
-        middleName: userJson['middle_name'] is String
-            ? userJson['middle_name'] as String
-            : (userJson['middleName'] is String ? userJson['middleName'] as String : null),
+        middleName: userJson['middle_name'] is String ? userJson['middle_name'] as String : null,
         address: userJson['address'] is String ? userJson['address'] as String : null,
         city: userJson['city'] is String ? userJson['city'] as String : null,
-        region: userJson['region'] is String
-            ? userJson['region'] as String
-            : (userJson['state'] is String ? userJson['state'] as String : null),
-        postalCode: userJson['postal_code'] is String
-            ? userJson['postal_code'] as String
-            : (userJson['postalCode'] is String
-            ? userJson['postalCode'] as String
-            : (userJson['zip_code'] is String ? userJson['zip_code'] as String : null)),
+        region: userJson['region'] is String ? userJson['region'] as String : null,
+        postalCode: userJson['postal_code'] is String ? userJson['postal_code'] as String : null,
         status: userJson['status'] is String
             ? userJson['status'] as String
             : (userJson['status']?.toString() ?? 'active'),
-        createdAt: userJson['created_at'] is String
-            ? userJson['created_at'] as String
-            : (userJson['createdAt'] is String ? userJson['createdAt'] as String : null),
-        updatedAt: userJson['updated_at'] is String
-            ? userJson['updated_at'] as String
-            : (userJson['updatedAt'] is String ? userJson['updatedAt'] as String : null),
+        createdAt: userJson['created_at'] is String ? userJson['created_at'] as String : null,
+        updatedAt: userJson['updated_at'] is String ? userJson['updated_at'] as String : null,
       );
-
+      
       String? token;
       if (data['token'] is String) {
         token = data['token'] as String;
       } else if (responseData['token'] is String) {
         token = responseData['token'] as String;
       }
-
+      
       if (token == null || token.isEmpty) {
         throw Exception('Token not found in registration response');
       }
-
+      
       final registrationResponse = RegistrationResponse(
         user: user,
         token: token,
@@ -445,20 +320,7 @@ class AuthRepository {
 
       // Save token and user data to all storage services
       await _saveTokenToAllStorages(token);
-      await _storage.saveUserData(
-        jsonEncode(user.toJson()),
-      );
-
-      // Verify token was saved correctly (same as login)
-      final verifyToken = await DioClient.instance.getToken();
-      if (verifyToken == null || verifyToken.isEmpty) {
-        print('❌ [AUTH] Token verification failed after registration - token not saved!');
-        throw Exception('Failed to save authentication token');
-      } else {
-        print('✅ [AUTH] Token verified after registration: ${verifyToken.substring(0, verifyToken.length > 20 ? 20 : verifyToken.length)}...');
-        print('✅ [AUTH] Token length: ${verifyToken.length}');
-        print('✅ [AUTH] Tokens match: ${verifyToken.trim() == token.trim()}');
-      }
+      await _storage.saveUserData(jsonEncode(user.toJson()));
 
       return registrationResponse;
     } catch (e) {
@@ -474,23 +336,31 @@ class AuthRepository {
         data: {'email': email},
       );
 
-      return PasswordResetResponse.fromJson(response.data);
+      final responseData = response.data;
+      if (responseData == null || responseData is! Map<String, dynamic>) {
+        throw Exception('Invalid password reset response format');
+      }
+      
+      return PasswordResetResponse(
+        message: responseData['message'] is String ? responseData['message'] as String : 'OTP sent successfully',
+        otp: null,
+      );
     } catch (e) {
       rethrow;
     }
   }
 
   /// Reset password with OTP
-  /// Note: Laravel route is PUT /homeowner/reset-password (no userId in URL, uses authenticated user)
+  /// Note: Laravel route is PUT /tradie/reset-password (no userId in URL, uses authenticated user)
   Future<void> resetPassword({
     required int userId, // Not used in URL but kept for compatibility
     required String otp, // Not used by Laravel API, but kept for compatibility
     required String newPassword,
   }) async {
     try {
-      // Laravel expects PUT request to /homeowner/reset-password with new_password
+      // Laravel expects PUT request to /tradie/reset-password with new_password
       await _apiClient.put(
-        '/homeowner/reset-password', // Laravel route doesn't include userId
+        ApiConstants.resetPasswordRoute,
         data: {
           'new_password': newPassword,
           'new_password_confirmation': newPassword,
@@ -509,18 +379,18 @@ class AuthRepository {
       if (responseData == null || responseData is! Map<String, dynamic>) {
         throw Exception('Invalid user response format');
       }
-
+      
       // Laravel returns { success: true, data: { user: {...} } }
       final data = responseData['data'];
       if (data == null || data is! Map<String, dynamic>) {
         throw Exception('Invalid user response: data field missing');
       }
-
+      
       final userData = data['user'];
       if (userData == null || userData is! Map<String, dynamic>) {
         throw Exception('Invalid user response: user field missing');
       }
-
+      
       final user = User.fromJson(userData);
 
       // Update stored user data

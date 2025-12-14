@@ -4,17 +4,20 @@ import '../../../core/models/tradie_model.dart';
 import '../models/edit_profile.dart';
 import '../repositories/edit_profile_repository.dart';
 
+
+final editProfileRepositoryProvider =
+Provider<EditProfileRepository>((ref) {
+  // Ensure you provide a configured Dio instance in core/network
+  final dio = ref.read(dioProvider);
+  return EditProfileRepository(dio);
+});
+
 final editProfileViewModelProvider =
     StateNotifierProvider<EditProfileViewModel, AsyncValue<TradieModel>>((ref) {
       final repo = ref.read(editProfileRepositoryProvider);
       return EditProfileViewModel(repo);
     });
 
-final editProfileRepositoryProvider = Provider<EditProfileRepository>((ref) {
-  // Ensure you provide a configured Dio instance in core/network
-  final dio = ref.read(dioProvider);
-  return EditProfileRepository(dio);
-});
 
 class EditProfileViewModel extends StateNotifier<AsyncValue<TradieModel>> {
   EditProfileViewModel(this._repository) : super(const AsyncValue.loading()) {

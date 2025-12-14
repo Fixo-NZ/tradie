@@ -2,7 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'auth_models.g.dart';
 
-/// User model representing a homeowner
+/// User model representing a tradie
 @JsonSerializable()
 class User {
   final int id;
@@ -21,10 +21,10 @@ class User {
   @JsonKey(name: 'postal_code')
   final String? postalCode; // Laravel uses 'postal_code' not 'zip_code'
   final String? status; // Laravel returns 'status' (string like 'active') not 'is_active' (bool)
-
+  
   // Computed property for backward compatibility
   bool get isActive => status == 'active';
-
+  
   // Backward compatibility getters
   String? get state => region;
   String? get zipCode => postalCode;
@@ -95,7 +95,7 @@ class OtpResponse {
   factory OtpResponse.fromJson(Map<String, dynamic> json) =>
       _$OtpResponseFromJson(json);
   Map<String, dynamic> toJson() => _$OtpResponseToJson(this);
-
+  
   // Backward compatibility getter
   String? get otp => otpCode;
 }
@@ -142,6 +142,16 @@ class RegistrationRequest {
   final String? state;
   @JsonKey(name: 'zip_code')
   final String? zipCode;
+  @JsonKey(name: 'business_name')
+  final String? businessName;
+  @JsonKey(name: 'license_number')
+  final String? licenseNumber;
+  @JsonKey(name: 'years_experience')
+  final int? yearsExperience;
+  @JsonKey(name: 'hourly_rate')
+  final double? hourlyRate;
+  @JsonKey(name: 'service_radius')
+  final int? serviceRadius;
 
   RegistrationRequest({
     required this.firstName,
@@ -155,6 +165,11 @@ class RegistrationRequest {
     this.city,
     this.state,
     this.zipCode,
+    this.businessName,
+    this.licenseNumber,
+    this.yearsExperience,
+    this.hourlyRate,
+    this.serviceRadius,
   });
 
   factory RegistrationRequest.fromJson(Map<String, dynamic> json) =>
@@ -221,9 +236,9 @@ class ApiResponse<T> {
   });
 
   factory ApiResponse.fromJson(
-      Map<String, dynamic> json,
-      T Function(Object? json) fromJsonT,
-      ) => _$ApiResponseFromJson(json, fromJsonT);
+    Map<String, dynamic> json,
+    T Function(Object? json) fromJsonT,
+  ) => _$ApiResponseFromJson(json, fromJsonT);
 
   Map<String, dynamic> toJson(Object Function(T value) toJsonT) =>
       _$ApiResponseToJson(this, toJsonT);

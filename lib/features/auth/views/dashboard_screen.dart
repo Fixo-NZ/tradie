@@ -115,11 +115,7 @@ class DashboardScreen extends ConsumerWidget {
                     subtitle: 'Update your info',
                     color: AppColors.tradieGreen,
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Profile screen coming soon!'),
-                        ),
-                      );
+                      context.go('/profile');
                     },
                   ),
                   _buildActionCard(

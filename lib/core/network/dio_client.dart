@@ -1,12 +1,12 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/api_constants.dart';
+import '../storage/secure_storage_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DioClient {
   static DioClient? _instance;
   late Dio _dio;
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final SecureStorageService _storage = SecureStorageService();
 
   DioClient._internal() {
     _dio = Dio(
@@ -24,17 +24,17 @@ class DioClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _storage.read(key: 'access_token');
-          if (token != null) {
+          final token = await _storage.getToken();
+          if (token != null && token.isNotEmpty) {
+            final cleanToken = token.trim();
             options.headers[ApiConstants.authorization] =
-                '${ApiConstants.bearer} $token';
+                '${ApiConstants.bearer} $cleanToken';
           }
           handler.next(options);
         },
         onError: (error, handler) async {
           if (error.response?.statusCode == 401) {
-            await _storage.delete(key: 'access_token');
-            // You can add navigation to login screen here
+            await _storage.deleteToken();
           }
           handler.next(error);
         },
@@ -50,15 +50,15 @@ class DioClient {
   Dio get dio => _dio;
 
   Future<void> setToken(String token) async {
-    await _storage.write(key: 'access_token', value: token);
+    await _storage.saveToken(token);
   }
 
   Future<void> clearToken() async {
-    await _storage.delete(key: 'access_token');
+    await _storage.deleteToken();
   }
 
   Future<String?> getToken() async {
-    return await _storage.read(key: 'access_token');
+    return await _storage.getToken();
   }
 }
 
