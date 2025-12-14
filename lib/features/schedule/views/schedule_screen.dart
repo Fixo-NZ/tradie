@@ -386,7 +386,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       itemBuilder: (context, index) {
                         final event = selectedEvents[index];
                         // Use a default color since the new model doesn't have a color field
-                        final color = const Color(0xFF3066BE);
+                        final color = const Color(0xFFCEDBF1);
 
                         return Column(
                           children: [

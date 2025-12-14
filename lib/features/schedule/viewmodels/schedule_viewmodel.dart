@@ -81,9 +81,6 @@ Future<void> cancelEvent(int id) async {
 }
 
 
-
-
-
   Future<void> rescheduleEvent({
     required int id,
     required DateTime startTime,
