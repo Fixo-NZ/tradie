@@ -44,10 +44,7 @@ class PortfolioSetupScreen extends ConsumerWidget {
       debugPrint("Upload result: ${result['body']}");
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Portfolio uploaded successfully")),
-    );
-
+    // Navigate to Done screen after uploads (no SnackBar shown)
     Navigator.of(context)
       .push(MaterialPageRoute(builder: (_) => const DoneScreen()));
   }

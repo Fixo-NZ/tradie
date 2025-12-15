@@ -106,16 +106,6 @@ class _SkillsSetupScreenState extends ConsumerState<SkillsSetupScreen> {
 
     if (success) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Skills & service area saved successfully!",
-              style: TextStyle(color: Colors.black87),
-            ),
-            backgroundColor: Color(0xFFEEEEEE),
-          ),
-        );
-
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const AvailabilitySetupScreen()),

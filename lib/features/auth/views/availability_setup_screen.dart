@@ -85,10 +85,7 @@ class AvailabilitySetupScreen extends ConsumerWidget {
           if (!context.mounted) return;
 
           if (success) {
-            // Show success message and move to Portfolio Setup Screen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Availability saved successfully!")),
-            );
+            // Move to Portfolio Setup Screen
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const PortfolioSetupScreen()),
             );
