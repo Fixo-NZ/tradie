@@ -186,24 +186,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         if (!isValid) {
           final state = ref.read(profileSetupViewModelProvider);
 
-          // 🔹 Check if any required field is empty
           final hasEmptyRequiredField =
-              state.firstName.isEmpty ||
-              state.lastName.isEmpty ||
-              state.email.isEmpty ||
-              state.phone.isEmpty ||
-              state.businessName.isEmpty;
+              state.firstName.trim().isEmpty ||
+              state.lastName.trim().isEmpty ||
+              state.email.trim().isEmpty ||
+              state.phone.trim().isEmpty ||
+              state.businessName.trim().isEmpty;
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              // 🔹 Show correct message based on validation result
-              content: Text(
-                hasEmptyRequiredField
-                    ? 'Fill out all required field' // required fields missing
-                    : 'Email is invalid',           // only email is invalid
+          if (hasEmptyRequiredField) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Fill out all required field'),
               ),
-            ),
-          );
+            );
+          }
           return;
         }
 
@@ -260,7 +256,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // First Name (now uses controller)
+                        // First Name
                         TextFormField(
                           controller: _firstNameController,
                           decoration: InputDecoration(
@@ -288,14 +284,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               return 'First name is required';
                             }
                             if (!RegExp(r'^[A-Z][a-zA-Z ]*$').hasMatch(value)) {
-                              return 'First letter must be uppercase';
+                              return 'Enter valid name';
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
 
-                        // Last Name (controller)
+                        // Last Name 
                         TextFormField(
                           controller: _lastNameController, 
                           decoration: InputDecoration(
@@ -323,14 +319,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                               return 'Last name is required';
                             }
                             if (!RegExp(r'^[A-Z][a-zA-Z ]*$').hasMatch(value)) {
-                              return 'First letter must be uppercase';
+                              return 'Enter valid name';
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
 
-                        // Email (unchanged)
+                        // Email
                         TextFormField(
                           initialValue: state.email,
                           keyboardType: TextInputType.emailAddress,
@@ -364,13 +360,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
                             // Check for @ symbol
                             if (!value.contains('@')) {
-                              return 'Email is invalid';
+                              return 'Enter valid email';
                             }
 
                             // Check for domain with TLD (. after @)
                             final parts = value.split('@');
                             if (parts.length != 2 || !parts[1].contains('.')) {
-                              return 'Email is invalid';
+                              return 'Enter valid email';
                             }
 
                             // Basic email format validation
@@ -380,7 +376,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             );
 
                             if (!emailRegex.hasMatch(value.trim())) {
-                              return 'Email is invalid';
+                              return 'Enter valid email';
                             }
 
                             return null;
@@ -388,7 +384,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Phone (controller + auto-format)
+                        // Phone 
                         TextFormField(
                           controller: _phoneController, 
                           keyboardType: TextInputType.phone,
@@ -412,19 +408,19 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           style: AppTextStyles.inputText.copyWith(fontSize: 17),
 
                           validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
+                            if (value == null || value.trim().isEmpty || value.trim() == '+64') {
                               return 'Phone number is required';
                             }
 
                             if (!value.startsWith('+64 ')) {
-                              return 'Must start with +64';
+                              return 'Enter valid phone number';
                             }
 
                             final digits = value.replaceAll(RegExp(r'[^\d]'), '');
-                            final nzDigits = digits.length >= 2 ? digits.substring(2) : ''; 
+                            final nzDigits = digits.length >= 2 ? digits.substring(2) : '';
 
                             if (nzDigits.length != 9) {
-                              return 'Phone number is required';
+                              return 'Enter valid phone number';
                             }
 
                             return null;
@@ -432,7 +428,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Business name and the rest unchanged (you can keep as-is)
+                        // Business name 
                         TextFormField(
                           initialValue: state.businessName,
                           decoration: InputDecoration(
@@ -492,7 +488,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Profile picture chooser container left as-is (your teammate)
+                        // Profile picture chooser container 
                         Container(
                           padding: const EdgeInsets.all(AppDimensions.spacing12),
                           decoration: BoxDecoration(

@@ -72,9 +72,8 @@ class LicenseUploadViewModel extends StateNotifier<LicenseUploadState> {
   }
 
   Future<bool> submitLicenseFiles() async {
-    if (licenseFiles.isEmpty || idFiles.isEmpty) {
-      state = state.copyWith(errorMessage: 'Please upload all required documents');
-      return false;
+    if (licenseFiles.isEmpty && idFiles.isEmpty) {
+    return true;
     }
 
     state = state.copyWith(isLoading: true, errorMessage: null);

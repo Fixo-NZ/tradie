@@ -9,10 +9,10 @@ class SkillsApiService extends ApiService {
     required Map<String, dynamic> serviceLocation,
   }) async {
 
-    // 🔐 Ensure skills are integers (backend safety)
+    // Ensure skills are integers (backend safety)
     final sanitizedSkills = skills.map((e) => e is int ? e : int.parse(e.toString())).toList();
 
-    // 🗺️ Ensure location contains correct lat/lng for OSM
+    // Ensure location contains correct lat/lng for OSM
     final sanitizedLocation = {
       "address": serviceLocation["address"],
       "city": serviceLocation["city"],
@@ -22,7 +22,7 @@ class SkillsApiService extends ApiService {
       "longitude": serviceLocation["longitude"] ?? 0.0,
     };
 
-    // 📦 FINAL REQUEST PAYLOAD
+    // FINAL REQUEST PAYLOAD
     final body = {
       "skills": sanitizedSkills,
       "service_radius": serviceRadius,
