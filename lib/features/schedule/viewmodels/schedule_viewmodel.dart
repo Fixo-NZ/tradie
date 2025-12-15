@@ -147,6 +147,9 @@ Future<void> cancelEvent(int id) async {
           case 'schedule.displayed':
             _handleScheduleDisplayed(jsonData);
             break;
+          case 'schedule.cancelled':
+            _handleScheduleCancelled(jsonData);
+            break;
           // Job offer events
           case 'job.created':
           case 'job.offer.created':
@@ -225,6 +228,65 @@ Future<void> cancelEvent(int id) async {
     // Simple solution: Just refresh the schedules from the API
     // This avoids JSON parsing issues and ensures data consistency
     loadSchedules();
+  }
+
+  void _handleScheduleCancelled(Map<String, dynamic> jsonData) {
+    if (kDebugMode) {
+      print('🚫 SCHEDULE CANCELLED EVENT RECEIVED!');
+      print('📡 Event data: $jsonData');
+    }
+    
+    try {
+      // Extract schedule data from the event
+      final eventData = jsonData['data'] ?? jsonData;
+      final scheduleData = eventData['schedule'];
+      
+      if (kDebugMode) {
+        print('📋 Schedule data type: ${scheduleData.runtimeType}');
+        print('📋 Schedule data: $scheduleData');
+      }
+      
+      if (scheduleData != null && scheduleData is Map<String, dynamic> && scheduleData['id'] != null) {
+        // Safely extract the ID
+        dynamic rawId = scheduleData['id'];
+        int cancelledId;
+        
+        if (rawId is int) {
+          cancelledId = rawId;
+        } else if (rawId is String) {
+          cancelledId = int.parse(rawId);
+        } else {
+          throw Exception('Invalid ID type: ${rawId.runtimeType}');
+        }
+        
+        // Remove the cancelled schedule from the list
+        final updatedList = state.schedules.where((event) => event.id != cancelledId).toList();
+        state = state.copyWith(schedules: updatedList);
+        
+        if (kDebugMode) {
+          print('✅ Schedule cancelled and removed from list: $cancelledId');
+          print('📊 Remaining schedules: ${updatedList.length}');
+        }
+      } else {
+        // Fallback: refresh schedules from API
+        if (kDebugMode) {
+          print('⚠️ Could not extract schedule ID or invalid data structure');
+          print('📋 Schedule data is null: ${scheduleData == null}');
+          print('📋 Schedule data is Map: ${scheduleData is Map<String, dynamic>}');
+          print('📋 Has ID: ${scheduleData != null ? scheduleData['id'] != null : false}');
+          print('📡 Refreshing from API instead');
+        }
+        loadSchedules();
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('❌ Error handling schedule cancelled: $e');
+        print('📚 Stack trace: $stackTrace');
+        print('📡 Falling back to API refresh');
+      }
+      // Fallback: refresh schedules from API
+      loadSchedules();
+    }
   }
 
   void _handleJobOfferCreated(Map<String, dynamic> jsonData) {
