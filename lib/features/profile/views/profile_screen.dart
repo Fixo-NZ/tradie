@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../viewmodels/profile_viewmodel.dart';
+import '../models/profile_model.dart';
 import '../../../core/theme/app_colors.dart';
-//import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_dimensions.dart';
-import '../../../core/providers/snackbar_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -16,139 +15,103 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _firstNameCtrl = TextEditingController();
-  final _lastNameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-
   @override
   void initState() {
     super.initState();
-
-    // Load profile once
-    Future.microtask(
-      () => ref.read(profileViewModelProvider.notifier).loadProfile(),
-    );
-  }
-
-  @override
-  void dispose() {
-    _firstNameCtrl.dispose();
-    _lastNameCtrl.dispose();
-    _phoneCtrl.dispose();
-    super.dispose();
+    Future.microtask(() {
+      ref.read(profileViewModelProvider.notifier).loadProfile();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(profileViewModelProvider);
 
-    // Listen to state changes in build context (safe to use context here)
-    ref.listen<ProfileState>(profileViewModelProvider, (previous, next) {
-      // When profile arrives, populate controllers once
-      if (next.profile != null && previous?.profile?.id != next.profile!.id) {
-        _firstNameCtrl.text = next.profile!.firstName ?? '';
-        _lastNameCtrl.text = next.profile!.lastName ?? '';
-        _phoneCtrl.text = next.profile!.phone ?? '';
-      }
-
-      // Show error toast/snackbar
-      if (next.errorMessage != null &&
-          next.errorMessage != previous?.errorMessage) {
-        ref
-            .read(snackBarProvider.notifier)
-            .show(next.errorMessage!, backgroundColor: AppColors.error);
-      }
-    });
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Tradie Profile'),
+        title: const Text('My Profile'),
         backgroundColor: AppColors.primary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/dashboard'),
         ),
       ),
-      body: state.isLoading && state.profile == null
+      body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : state.errorMessage != null && state.profile == null
+          : state.errorMessage != null
           ? Center(child: Text(state.errorMessage!))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(AppDimensions.paddingMedium),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _firstNameCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'First Name',
-                      ),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
-                    ),
-                    const SizedBox(height: AppDimensions.spacing16),
-                    TextFormField(
-                      controller: _lastNameCtrl,
-                      decoration: const InputDecoration(labelText: 'Last Name'),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
-                    ),
-                    const SizedBox(height: AppDimensions.spacing16),
-                    TextFormField(
-                      controller: _phoneCtrl,
-                      decoration: const InputDecoration(labelText: 'Phone'),
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: AppDimensions.spacing24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: AppDimensions.buttonHeight,
-                      child: ElevatedButton(
-                        onPressed: state.isLoading
-                            ? null
-                            : () async {
-                                if (_formKey.currentState!.validate()) {
-                                  final success = await ref
-                                      .read(profileViewModelProvider.notifier)
-                                      .updateProfile({
-                                        'first_name': _firstNameCtrl.text
-                                            .trim(),
-                                        'last_name': _lastNameCtrl.text.trim(),
-                                        'phone': _phoneCtrl.text.trim(),
-                                      });
+          : state.profile == null
+          ? const Center(child: Text('No profile data available'))
+          : _buildProfileContent(context, state.profile!),
+      bottomNavigationBar: state.profile != null
+          ? Padding(
+        padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+        child: SizedBox(
+          width: double.infinity,
+          height: AppDimensions.buttonHeight,
+          child: ElevatedButton(
+            onPressed: () {
+              // Navigate to edit profile screen
+              context.go('/edit-profile');
+            },
+            child: const Text('Edit Profile'),
+          ),
+        ),
+      )
+          : null,
+    );
+  }
 
-                                  if (!mounted) return;
-
-                                  if (success) {
-                                    ref
-                                        .read(snackBarProvider.notifier)
-                                        .show('Profile updated');
-                                    // optionally navigate back:
-                                    // context.pop();
-                                  }
-                                }
-                              },
-                        child: state.isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                ),
-                              )
-                            : const Text('Save'),
-                      ),
-                    ),
-                  ],
-                ),
+  Widget _buildProfileContent(BuildContext context, ProfileModel profile) {
+    Widget buildRow(String label, String? value) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Text(
+                '$label:',
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
+            Expanded(
+              flex: 5,
+              child: Text(value ?? '-'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          buildRow('First Name', profile.firstName),
+          buildRow('Middle Name', profile.middleName),
+          buildRow('Last Name', profile.lastName),
+          buildRow('Email', profile.email),
+          buildRow('Phone', profile.phone),
+          buildRow('Bio', profile.bio),
+          buildRow('Address', profile.address),
+          buildRow('City', profile.city),
+          buildRow('Region', profile.region),
+          buildRow('Postal Code', profile.postalCode),
+          buildRow('Latitude', profile.latitude?.toString()),
+          buildRow('Longitude', profile.longitude?.toString()),
+          buildRow('Business Name', profile.businessName),
+          buildRow('License Number', profile.licenseNumber),
+          buildRow('Insurance Details', profile.insuranceDetails),
+          buildRow('Years Experience', profile.yearsExperience?.toString()),
+          buildRow('Hourly Rate', profile.hourlyRate?.toString()),
+          buildRow('Availability Status', profile.availabilityStatus),
+          buildRow('Service Radius', profile.serviceRadius?.toString()),
+        ],
+      ),
     );
   }
 }
