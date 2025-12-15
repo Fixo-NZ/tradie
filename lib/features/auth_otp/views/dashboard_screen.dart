@@ -31,9 +31,7 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 onTap: () async {
                   await ref.read(authViewModelProvider.notifier).logout();
-                  if (context.mounted) {
-                    context.go('/login');
-                  }
+                  if (context.mounted) context.go('/login');
                 },
               ),
             ],
@@ -102,22 +100,26 @@ class DashboardScreen extends ConsumerWidget {
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 _ActionCard(
+                  icon: Icons.notifications,
+                  iconColor: Colors.orange,
+                  title: 'Notifications',
+                  subtitle: 'View your requests',
+                  onTap: () => context.go('/notifications'),
+                ),
+
+                _ActionCard(
                   icon: Icons.person,
                   iconColor: Colors.green,
                   title: 'Profile',
-                  subtitle: 'Update your info',
-                  onTap: () {
-                    context.go('/profile');
-                  },
+                  subtitle: 'View Profile',
+                  onTap: () => context.go('/profile'),
                 ),
                 _ActionCard(
                   icon: Icons.edit,
                   iconColor: Colors.blue,
                   title: 'Edit Profile',
-                  subtitle: 'Edit your details',
-                  onTap: () {
-                    context.go('/edit-profile');
-                  },
+                  subtitle: 'Edit Profile',
+                  onTap: () => context.go('/edit-profile'),
                 ),
               ],
             ),

@@ -9,7 +9,7 @@ import '../../features/auth_otp/viewmodels/auth_viewmodel.dart';
 import '../../features/profile/views/profile_screen.dart';
 // import edit profile screen
 import '../../features/edit_profile/views/edit_profile_screen.dart';
-
+import '../../features/notification/views/notification_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authViewModelProvider);
@@ -24,12 +24,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isResetPassword = state.matchedLocation == '/reset-password';
 
       // If not authenticated and not on login/register/otp/reset-password page, redirect to login
-      if (!isAuthenticated && !isLoggingIn && !isRegistering && !isOtp && !isResetPassword) {
+      if (!isAuthenticated &&
+          !isLoggingIn &&
+          !isRegistering &&
+          !isOtp &&
+          !isResetPassword) {
         return '/login';
       }
 
       // If authenticated and on login/register/otp/reset-password page, redirect to dashboard
-      if (isAuthenticated && (isLoggingIn || isRegistering || isOtp || isResetPassword)) {
+      if (isAuthenticated &&
+          (isLoggingIn || isRegistering || isOtp || isResetPassword)) {
         return '/dashboard';
       }
 
@@ -66,6 +71,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/edit-profile',
         builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationScreen(),
       ),
     ],
   );

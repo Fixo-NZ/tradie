@@ -1,6 +1,6 @@
 class ApiConstants {
   static const String baseUrl = 'http://10.0.2.2:8000/api';
-  
+
   // ============================================================================
   // AUTH_OTP ENDPOINTS (features/auth_otp) - ACTIVE ENDPOINTS
   // ============================================================================
@@ -18,6 +18,10 @@ class ApiConstants {
   static const String registerEndpoint = '/tradie/register';
   static const String logoutEndpoint = '/tradie/logout';
   static const String refreshTokenEndpoint = '/tradie/refresh';
+
+  // Notification Endpoints
+  static const String notifications = '/notifications';
+  static String markNotificationRead(String id) => '/notifications/$id/read';
 
   // Headers
   static const String contentType = 'application/json';
