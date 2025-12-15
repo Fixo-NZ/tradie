@@ -168,6 +168,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -257,6 +258,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                 const SizedBox(height: AppDimensions.spacing12),
                 Expanded(
                   child: SingleChildScrollView(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -271,7 +275,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             filled: true,
                             fillColor: Colors.white,
                             contentPadding: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 10),
+                                vertical: 16, horizontal: 16),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.surfaceVariant),
                               borderRadius: BorderRadius.circular(8),
@@ -306,7 +310,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             filled: true,
                             fillColor: Colors.white,
                             contentPadding: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 10),
+                                vertical: 16, horizontal: 16),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.surfaceVariant),
                               borderRadius: BorderRadius.circular(8),
@@ -344,7 +348,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             filled: true,
                             fillColor: Colors.white,
                             contentPadding: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 10),
+                                vertical: 16, horizontal: 16),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.surfaceVariant),
                               borderRadius: BorderRadius.circular(8),
@@ -399,7 +403,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             floatingLabelBehavior: FloatingLabelBehavior.always,
                             filled: true,
                             fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.surfaceVariant),
                               borderRadius: BorderRadius.circular(8),
@@ -443,7 +447,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             filled: true,
                             fillColor: Colors.white,
                             contentPadding: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 10),
+                                vertical: 16, horizontal: 16),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.surfaceVariant),
                               borderRadius: BorderRadius.circular(8),
@@ -475,7 +479,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                             filled: true,
                             fillColor: Colors.white,
                             contentPadding: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 10),
+                                vertical: 16, horizontal: 16),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.surfaceVariant),
                               borderRadius: BorderRadius.circular(8),
