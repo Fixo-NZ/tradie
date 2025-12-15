@@ -1,167 +1,123 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_dimensions.dart';
-import '../../../core/theme/app_text_styles.dart';
-import '../viewmodels/edit_profile_viewmodel.dart';
 import '../models/edit_profile.dart';
+import '../viewmodels/edit_profile_viewmodel.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
 
   @override
-  ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
+  ConsumerState<EditProfileScreen> createState() => _EditProfilePageState();
 }
 
-class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+class _EditProfilePageState extends ConsumerState<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _firstNameCtrl = TextEditingController();
-  final _lastNameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  final _bioCtrl = TextEditingController();
+
+  // Controllers for text fields
+  late TextEditingController firstNameController;
+  late TextEditingController lastNameController;
+  late TextEditingController phoneController;
+  late TextEditingController bioController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Load profile once after widget is mounted
+    Future.microtask(() {
+      ref.read(editProfileViewModelProvider.notifier).loadProfile();
+    });
+
+    // Initialize controllers
+    firstNameController = TextEditingController();
+    lastNameController = TextEditingController();
+    phoneController = TextEditingController();
+    bioController = TextEditingController();
+  }
 
   @override
   void dispose() {
-    _firstNameCtrl.dispose();
-    _lastNameCtrl.dispose();
-    _phoneCtrl.dispose();
-    _bioCtrl.dispose();
+    firstNameController.dispose();
+    lastNameController.dispose();
+    phoneController.dispose();
+    bioController.dispose();
     super.dispose();
   }
 
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      final request = EditProfile(
-        firstName: _firstNameCtrl.text.trim(),
-        lastName: _lastNameCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim(),
-        bio: _bioCtrl.text.trim(),
-      );
-      ref.read(editProfileViewModelProvider.notifier).updateProfile(request);
-    }
+  void _populateControllers(EditProfile profile) {
+    firstNameController.text = profile.firstName ?? '';
+    lastNameController.text = profile.lastName ?? '';
+    phoneController.text = profile.phone ?? '';
+    bioController.text = profile.bio ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(editProfileViewModelProvider);
-    // final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Edit Profile'),
-        elevation: AppDimensions.elevationLow,
-      ),
+      appBar: AppBar(title: const Text('Edit Profile')),
       body: state.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Text(
-            'Error: $e',
-            style: AppTextStyles.errorText,
-            textAlign: TextAlign.center,
-          ),
-        ),
+        error: (e, _) => Center(child: Text('Error: $e')),
         data: (profile) {
-          // Pre-fill fields
-          _firstNameCtrl.text = profile.firstName;
-          _lastNameCtrl.text = profile.lastName;
-          _phoneCtrl.text = profile.phone ?? '';
-          _bioCtrl.text = profile.bio ?? '';
+          // populate controllers with current data
+          _populateControllers(profile as EditProfile);
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-            child: Card(
-              elevation: AppDimensions.elevationMedium,
-              color: AppColors.surface,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppDimensions.radiusLarge),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Personal Details',
-                        style: AppTextStyles.titleLarge.copyWith(
-                          color: AppColors.tradieBlue,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: AppDimensions.spacing16),
-
-                      // First Name
-                      TextFormField(
-                        controller: _firstNameCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'First Name',
-                          hintText: 'Enter your first name',
-                        ),
-                        validator: (v) =>
-                            v == null || v.isEmpty ? 'Required' : null,
-                      ),
-                      const SizedBox(height: AppDimensions.spacing16),
-
-                      // Last Name
-                      TextFormField(
-                        controller: _lastNameCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Last Name',
-                          hintText: 'Enter your last name',
-                        ),
-                        validator: (v) =>
-                            v == null || v.isEmpty ? 'Required' : null,
-                      ),
-                      const SizedBox(height: AppDimensions.spacing16),
-
-                      // Phone
-                      TextFormField(
-                        controller: _phoneCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'Phone',
-                          hintText: 'Enter your phone number',
-                        ),
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: AppDimensions.spacing16),
-
-                      // Bio
-                      TextFormField(
-                        controller: _bioCtrl,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Bio',
-                          hintText: 'Short description about yourself',
-                        ),
-                      ),
-                      const SizedBox(height: AppDimensions.spacing24),
-
-                      ElevatedButton(
-                        onPressed: _submit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.onPrimary,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: AppDimensions.paddingMedium,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              AppDimensions.radiusMedium,
-                            ),
-                          ),
-                        ),
-                        child: Text(
-                          'Save Changes',
-                          style: AppTextStyles.buttonLarge.copyWith(
-                            color: AppColors.onPrimary,
-                          ),
-                        ),
-                      ),
-                    ],
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  TextFormField(
+                    controller: firstNameController,
+                    decoration: const InputDecoration(labelText: 'First Name'),
+                    validator: (v) => v!.isEmpty ? 'Required' : null,
                   ),
-                ),
+                  TextFormField(
+                    controller: lastNameController,
+                    decoration: const InputDecoration(labelText: 'Last Name'),
+                    validator: (v) => v!.isEmpty ? 'Required' : null,
+                  ),
+                  TextFormField(
+                    controller: phoneController,
+                    decoration: const InputDecoration(labelText: 'Phone'),
+                  ),
+                  TextFormField(
+                    controller: bioController,
+                    decoration: const InputDecoration(labelText: 'Bio'),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (!_formKey.currentState!.validate()) return;
+
+                      final editProfile = EditProfile(
+                        firstName: firstNameController.text,
+                        lastName: lastNameController.text,
+                        phone: phoneController.text,
+                        bio: bioController.text,
+                      );
+
+                      await ref
+                          .read(editProfileViewModelProvider.notifier)
+                          .updateProfile(editProfile);
+
+                      // Optional: show snackbar on success or error
+                      final currentState =
+                      ref.read(editProfileViewModelProvider);
+                      currentState.whenOrNull(
+                        data: (_) => ScaffoldMessenger.of(context)
+                            .showSnackBar(const SnackBar(
+                            content: Text('Profile updated'))),
+                        error: (e, _) => ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text('$e'))),
+                      );
+                    },
+                    child: const Text('Save'),
+                  ),
+                ],
               ),
             ),
           );

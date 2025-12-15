@@ -67,7 +67,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppDimensions.spacing4),
                       Text(
-                        authState.user!.email,
+                        authState.user!.email ?? '',
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: AppColors.onSurfaceVariant,
                         ),

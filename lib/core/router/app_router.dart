@@ -7,6 +7,9 @@ import '../../features/auth_otp/views/otp_screen.dart';
 import '../../features/auth_otp/views/reset_password_screen.dart';
 import '../../features/auth_otp/viewmodels/auth_viewmodel.dart';
 import '../../features/profile/views/profile_screen.dart';
+// import edit profile screen
+import '../../features/edit_profile/views/edit_profile_screen.dart';
+
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authViewModelProvider);
@@ -59,6 +62,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        builder: (context, state) => const EditProfileScreen(),
       ),
     ],
   );

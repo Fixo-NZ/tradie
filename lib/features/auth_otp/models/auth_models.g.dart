@@ -8,10 +8,10 @@ part of 'auth_models.dart';
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
   id: (json['id'] as num).toInt(),
-  firstName: json['first_name'] as String,
+  firstName: json['first_name'] as String?,
   middleName: json['middle_name'] as String?,
-  lastName: json['last_name'] as String,
-  email: json['email'] as String,
+  lastName: json['last_name'] as String?,
+  email: json['email'] as String?,
   phone: json['phone'] as String?,
   address: json['address'] as String?,
   city: json['city'] as String?,
@@ -87,10 +87,10 @@ Map<String, dynamic> _$OtpVerificationResponseToJson(
 
 RegistrationRequest _$RegistrationRequestFromJson(Map<String, dynamic> json) =>
     RegistrationRequest(
-      firstName: json['first_name'] as String,
-      middleName: json['middle_name'] as String?,
-      lastName: json['last_name'] as String,
-      email: json['email'] as String,
+  firstName: json['first_name'] as String,
+  middleName: json['middle_name'] as String,
+  lastName: json['last_name'] as String,
+  email: json['email'] as String,
       phone: json['phone'] as String,
       password: json['password'] as String,
       passwordConfirmation: json['password_confirmation'] as String,

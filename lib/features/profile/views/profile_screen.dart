@@ -47,8 +47,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     ref.listen<ProfileState>(profileViewModelProvider, (previous, next) {
       // When profile arrives, populate controllers once
       if (next.profile != null && previous?.profile?.id != next.profile!.id) {
-        _firstNameCtrl.text = next.profile!.firstName;
-        _lastNameCtrl.text = next.profile!.lastName;
+        _firstNameCtrl.text = next.profile!.firstName ?? '';
+        _lastNameCtrl.text = next.profile!.lastName ?? '';
         _phoneCtrl.text = next.profile!.phone ?? '';
       }
 
@@ -68,7 +68,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         backgroundColor: AppColors.primary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/dashboard'),
         ),
       ),
       body: state.isLoading && state.profile == null

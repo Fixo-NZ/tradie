@@ -116,7 +116,7 @@ class DashboardScreen extends ConsumerWidget {
                   title: 'Edit Profile',
                   subtitle: 'Edit your details',
                   onTap: () {
-                    // Navigate to edit profile
+                    context.go('/edit-profile');
                   },
                 ),
               ],

@@ -6,12 +6,12 @@ part 'tradie_model.g.dart';
 class TradieModel {
   final int? id;
   @JsonKey(name: 'first_name')
-  final String firstName;
+  final String? firstName;
   @JsonKey(name: 'last_name')
-  final String lastName;
+  final String? lastName;
   @JsonKey(name: 'middle_name')
   final String? middleName;
-  final String email;
+  final String? email;
   final String? phone;
   final String? avatar;
   final String? bio;
@@ -33,9 +33,9 @@ class TradieModel {
   @JsonKey(name: 'hourly_rate')
   final double? hourlyRate;
   @JsonKey(name: 'availability_status')
-  final String availabilityStatus;
+  final String? availabilityStatus;
   @JsonKey(name: 'service_radius')
-  final int serviceRadius;
+  final int? serviceRadius;
   @JsonKey(name: 'created_at')
   final DateTime? createdAt;
   @JsonKey(name: 'updated_at')
@@ -43,10 +43,10 @@ class TradieModel {
 
   const TradieModel({
     this.id,
-    required this.firstName,
-    required this.lastName,
-    required this.middleName,
-    required this.email,
+    this.firstName,
+    this.lastName,
+    this.middleName,
+    this.email,
     this.phone,
     this.avatar,
     this.bio,
@@ -61,8 +61,8 @@ class TradieModel {
     this.insuranceDetails,
     this.yearsExperience,
     this.hourlyRate,
-    this.availabilityStatus = 'available',
-    this.serviceRadius = 50,
+    this.availabilityStatus,
+    this.serviceRadius,
     this.createdAt,
     this.updatedAt,
   });
@@ -72,7 +72,7 @@ class TradieModel {
 
   Map<String, dynamic> toJson() => _$TradieModelToJson(this);
 
-  String get fullName => '$firstName ${middleName ?? ''} $lastName'.trim();
+  String get fullName => '${firstName ?? ''} ${middleName ?? ''} ${lastName ?? ''}'.trim();
 
   TradieModel copyWith({
     int? id,

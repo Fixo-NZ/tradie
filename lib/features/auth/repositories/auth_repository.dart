@@ -285,8 +285,8 @@ class AuthRepository {
 
           // Validate that we have at least the essential fields
           // Note: phone is optional (can be null), so we don't validate it
-          if (user.id == 0 || user.firstName.isEmpty || user.lastName.isEmpty ||
-              user.email.isEmpty) {
+          if (user.id == 0 || (user.firstName?.isEmpty ?? true) || (user.lastName?.isEmpty ?? true) ||
+              (user.email?.isEmpty ?? true)) {
             print('❌ Missing required user fields. User: $user');
             throw Exception('Missing required user fields. User JSON: $userJson');
           }

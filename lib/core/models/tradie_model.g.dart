@@ -8,10 +8,10 @@ part of 'tradie_model.dart';
 
 TradieModel _$TradieModelFromJson(Map<String, dynamic> json) => TradieModel(
   id: (json['id'] as num?)?.toInt(),
-  firstName: json['first_name'] as String,
-  lastName: json['last_name'] as String,
+  firstName: json['first_name'] as String?,
+  lastName: json['last_name'] as String?,
   middleName: json['middle_name'] as String?,
-  email: json['email'] as String,
+  email: json['email'] as String?,
   phone: json['phone'] as String?,
   avatar: json['avatar'] as String?,
   bio: json['bio'] as String?,
@@ -26,8 +26,8 @@ TradieModel _$TradieModelFromJson(Map<String, dynamic> json) => TradieModel(
   insuranceDetails: json['insurance_details'] as String?,
   yearsExperience: (json['years_experience'] as num?)?.toInt(),
   hourlyRate: (json['hourly_rate'] as num?)?.toDouble(),
-  availabilityStatus: json['availability_status'] as String? ?? 'available',
-  serviceRadius: (json['service_radius'] as num?)?.toInt() ?? 50,
+  availabilityStatus: json['availability_status'] as String?,
+  serviceRadius: (json['service_radius'] as num?)?.toInt(),
   createdAt: json['created_at'] == null
       ? null
       : DateTime.parse(json['created_at'] as String),

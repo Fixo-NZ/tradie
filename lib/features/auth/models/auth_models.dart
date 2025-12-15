@@ -7,12 +7,12 @@ part 'auth_models.g.dart';
 class User {
   final int id;
   @JsonKey(name: 'first_name')
-  final String firstName;
+  final String? firstName;
   @JsonKey(name: 'middle_name')
   final String? middleName;
   @JsonKey(name: 'last_name')
-  final String lastName;
-  final String email;
+  final String? lastName;
+  final String? email;
   final String? phone; // Made nullable since Laravel can return null
   final String? address;
   final String? city;
@@ -35,10 +35,10 @@ class User {
 
   User({
     required this.id,
-    required this.firstName,
+    this.firstName,
     this.middleName,
-    required this.lastName,
-    required this.email,
+    this.lastName,
+    this.email,
     this.phone, // Made nullable since Laravel can return null
     this.address,
     this.city,
@@ -53,10 +53,10 @@ class User {
   Map<String, dynamic> toJson() => _$UserToJson(this);
 
   String get fullName {
-    if (middleName != null && middleName!.isNotEmpty) {
-      return '$firstName $middleName $lastName';
-    }
-    return '$firstName $lastName';
+    final first = firstName ?? '';
+    final middle = middleName != null && middleName!.isNotEmpty ? ' $middleName ' : ' ';
+    final last = lastName ?? '';
+    return '$first$middle$last'.trim();
   }
 }
 
