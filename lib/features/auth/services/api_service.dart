@@ -5,23 +5,26 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Base URL for all API requests
   //static const String baseUrl = "http://192.168.4.111:8000/api/tradie";
-  static const String baseUrl = "http://10.0.2.2:8000/api/tradie";   //For testing - Kath
-  //static const String baseUrl = "http://192.168.100.53:8000/api/tradie";
+   static const String baseUrl = "http://10.0.2.2:8000/api/tradie";   //For testing - Kath
+  //static const String baseUrl = "http://192.168.100.53:8000/api/tradie"; //For testing - erika
+  // static const String baseUrl = "http://192.168.5.7:8000/api/tradie"; //For testing - erika school
 
   static const String token =
-      "11|imr6an8C0medfaHg7KYrnRjI5Y3nIBCydSu0E8QAc00bde93"; //For testing - Kath 
+       "11|imr6an8C0medfaHg7KYrnRjI5Y3nIBCydSu0E8QAc00bde93"; //For testing - Kath 
 
   // Temporary token for testing (normally stored securely)
   //static const String token =
-  //    "20|ANvW0nyB5qXnngNF01fVwBwIdEb6oFw1MbLtYtULa00a62cc";
+  //    "6|45dKRUfQ1OLscEVH4Th3bZiW2m3l0YPN3qTh0aiZ59e3c337"; //For testing - erika
 
   // Generic GET
   Future<Map<String, dynamic>> get(String endpoint) async {
     final uri = Uri.parse('$baseUrl$endpoint');
-    
+    final headers = _headers();
+    _logOutgoingRequest('GET', uri, headers);
+
     final response = await http.get(
       uri,
-      headers: _headers(),
+      headers: headers,
     );
 
     _logResponse(response);
@@ -31,10 +34,12 @@ class ApiService {
   // Generic POST (for JSON body)
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final uri = Uri.parse('$baseUrl$endpoint');
+    final headers = _headers();
+    _logOutgoingRequest('POST', uri, headers, body: body);
 
     final response = await http.post(
       uri,
-      headers: _headers(),
+      headers: headers,
       body: jsonEncode(body),
     );
 
@@ -56,6 +61,9 @@ class ApiService {
       'Authorization': 'Bearer $token',
       'Accept': 'application/json',
     });
+
+    // Log outgoing multipart request with masked token
+    _logOutgoingRequest('MULTIPART POST', uri, request.headers);
 
     request.fields.addAll(fields);
 
@@ -83,6 +91,36 @@ class ApiService {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       };
+
+  // Mask token for logs (show first 6 chars only)
+  String _maskToken(String? t) {
+    if (t == null || t.isEmpty) return '';
+    if (t.length <= 6) return '***';
+    return '${t.substring(0, 6)}...';
+  }
+
+  void _logOutgoingRequest(String method, Uri uri, Map<String, String>? headers, {Object? body}) {
+    try {
+      final h = Map<String, String>.from(headers ?? {});
+      if (h.containsKey('Authorization')) {
+        final v = h['Authorization']!;
+        // Keep the 'Bearer ' prefix if present
+        if (v.toLowerCase().startsWith('bearer ')) {
+          final tokenPart = v.substring(7);
+          h['Authorization'] = 'Bearer ${_maskToken(tokenPart)}';
+        } else {
+          h['Authorization'] = _maskToken(v);
+        }
+      }
+
+      print('--- Outgoing API Request ---');
+      print('Method: $method');
+      print('URL: $uri');
+      print('Headers: $h');
+      if (body != null) print('Body: $body');
+      print('----------------------------');
+    } catch (_) {}
+  }
 
   // Log API responses for debugging
   void _logResponse(http.Response response) {

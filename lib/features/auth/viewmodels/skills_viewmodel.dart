@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geocoding/geocoding.dart';
 import '../services/skills_api_services.dart';
 
 class SkillItem {
@@ -34,9 +35,13 @@ class SkillsState {
   final bool isLoading;
   final String? errorMessage;
 
-  // ⭐ NEW: store map coordinates
+  // ⭐ NEW: store map coordinates and address
   final double latitude;
   final double longitude;
+  final String address;
+  final String city;
+  final String region;
+  final String postalCode;
 
   SkillsState({
     required this.skills,
@@ -45,6 +50,10 @@ class SkillsState {
     this.errorMessage,
     this.latitude = 0.0,
     this.longitude = 0.0,
+    this.address = '',
+    this.city = '',
+    this.region = '',
+    this.postalCode = '',
   });
 
   SkillsState copyWith({
@@ -54,6 +63,10 @@ class SkillsState {
     String? errorMessage,
     double? latitude,
     double? longitude,
+    String? address,
+    String? city,
+    String? region,
+    String? postalCode,
   }) {
     return SkillsState(
       skills: skills ?? this.skills,
@@ -62,6 +75,10 @@ class SkillsState {
       errorMessage: errorMessage,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      address: address ?? this.address,
+      city: city ?? this.city,
+      region: region ?? this.region,
+      postalCode: postalCode ?? this.postalCode,
     );
   }
 }
@@ -124,14 +141,64 @@ class SkillsViewModel extends StateNotifier<SkillsState> {
   }
 
   // -------------------------------------------------------------
-  // SUBMIT DATA TO API
+  // ⭐ NEW: UPDATE ADDRESS FROM REVERSE GEOCODING
   // -------------------------------------------------------------
-  Future<bool> submitSkills({
+  void updateAddress({
+    required String address,
+    required String city,
+    required String region,
+    required String postalCode,
+  }) {
+    state = state.copyWith(
+      address: address,
+      city: city,
+      region: region,
+      postalCode: postalCode,
+    );
+  }
+
+  // -------------------------------------------------------------
+  // ⭐ NEW: FORWARD GEOCODING - ADDRESS TO COORDINATES
+  // -------------------------------------------------------------
+  Future<bool> geocodeAddress({
     required String address,
     required String city,
     required String region,
     required String postalCode,
   }) async {
+    try {
+      // Combine address parts for geocoding
+      final fullAddress = '$address, $city, $region, $postalCode, New Zealand';
+      
+      List<Location> locations = await locationFromAddress(fullAddress);
+      
+      if (locations.isNotEmpty) {
+        final location = locations.first;
+        
+        // Update both coordinates and address in state
+        state = state.copyWith(
+          latitude: location.latitude,
+          longitude: location.longitude,
+          address: address,
+          city: city,
+          region: region,
+          postalCode: postalCode,
+        );
+        
+        print("📍 Geocoded address to: ${location.latitude}, ${location.longitude}");
+        return true;
+      }
+    } catch (e) {
+      print("Geocoding error: $e");
+    }
+    
+    return false;
+  }
+
+  // -------------------------------------------------------------
+  // SUBMIT DATA TO API
+  // -------------------------------------------------------------
+  Future<bool> submitSkills() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     final selectedSkillIds =
@@ -141,10 +208,10 @@ class SkillsViewModel extends StateNotifier<SkillsState> {
   print("Type of skills: ${selectedSkillIds.runtimeType}");
 
     final serviceLocation = {
-      "address": address,
-      "city": city,
-      "region": region,
-      "postal_code": postalCode,
+      "address": state.address,
+      "city": state.city,
+      "region": state.region,
+      "postal_code": state.postalCode,
 
       // ⭐ Use REAL map coordinates chosen by the user
       "latitude": state.latitude,

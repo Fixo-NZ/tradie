@@ -1,28 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/widgets/navigation_widgets.dart';
+import '../../../core/widgets/osm_location_map.dart';
+import '../../../core/services/geocoding_service.dart';
 import 'availability_setup_screen.dart';
 import '../viewmodels/skills_viewmodel.dart';
-import '../services/skills_api_services.dart';
 
-class SkillsSetupScreen extends ConsumerWidget {
+
+class SkillsSetupScreen extends ConsumerStatefulWidget {
   const SkillsSetupScreen({super.key});
 
+  @override
+  ConsumerState<SkillsSetupScreen> createState() => _SkillsSetupScreenState();
+}
+
+class _SkillsSetupScreenState extends ConsumerState<SkillsSetupScreen> {
   static const Color kCustomBlue = Color.fromRGBO(9, 12, 155, 1.0);
+  
+  // Controllers for location fields (default to Auckland, NZ)
+  late final TextEditingController addressController;
+  late final TextEditingController cityController;
+  late final TextEditingController regionController;
+  late final TextEditingController postalCodeController;
+  
+  // Current map position
+  LatLng? currentMapPosition;
+  
+  @override
+  void initState() {
+    super.initState();
+    addressController = TextEditingController(text: "1 Queen Street");
+    cityController = TextEditingController(text: "Auckland");
+    regionController = TextEditingController(text: "Auckland");
+    postalCodeController = TextEditingController(text: "1010");
+  }
+  
+  @override
+  void dispose() {
+    addressController.dispose();
+    cityController.dispose();
+    regionController.dispose();
+    postalCodeController.dispose();
+    super.dispose();
+  }
+
+  // Function to geocode address and update map
+  Future<void> geocodeAndUpdateMap() async {
+    final fullAddress = '${addressController.text}, ${cityController.text}, ${regionController.text}, ${postalCodeController.text}';
+    
+    if (fullAddress.trim().replaceAll(',', '').trim().isEmpty) return;
+    
+    final result = await GeocodingService.geocodeAddress(fullAddress);
+    if (result != null) {
+      setState(() {
+        currentMapPosition = LatLng(result['latitude'], result['longitude']);
+      });
+    }
+  }
+
+  // Function to reverse geocode map position and update address fields
+  Future<void> reverseGeocodeAndUpdateFields(double latitude, double longitude) async {
+    final result = await GeocodingService.reverseGeocode(latitude, longitude);
+    if (result != null) {
+      setState(() {
+        addressController.text = result['address'] ?? '';
+        cityController.text = result['city'] ?? '';
+        regionController.text = result['region'] ?? '';
+        postalCodeController.text = result['postal_code'] ?? '';
+      });
+    }
+  }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final viewModel = ref.read(skillsViewModelProvider.notifier);
     final state = ref.watch(skillsViewModelProvider);
-
-    // Controllers for location fields
-    final addressController = TextEditingController(text: "123 Test Street");
-    final cityController = TextEditingController(text: "San Juan");
-    final regionController = TextEditingController(text: "La Union");
-    final postalCodeController = TextEditingController(text: "2514");
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -38,12 +94,15 @@ class SkillsSetupScreen extends ConsumerWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: ContinueFloatingButton(
   onPressed: () async {
-    final success = await viewModel.submitSkills(
+    // Update the address in viewmodel state first
+    viewModel.updateAddress(
       address: addressController.text,
       city: cityController.text,
       region: regionController.text,
       postalCode: postalCodeController.text,
     );
+
+    final success = await viewModel.submitSkills();
 
     if (success) {
       if (context.mounted) {
@@ -218,6 +277,7 @@ class SkillsSetupScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               TextFormField(
                 controller: addressController,
+                onChanged: (value) => geocodeAndUpdateMap(),
                 decoration: InputDecoration(
                   labelText: 'Address',
                   labelStyle: AppTextStyles.bodyLarge.copyWith(
@@ -227,6 +287,7 @@ class SkillsSetupScreen extends ConsumerWidget {
                   prefixIcon: Icon(Icons.location_on, color: AppColors.onSurfaceVariant),
                   filled: true,
                   fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
@@ -247,6 +308,7 @@ class SkillsSetupScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               TextFormField(
                 controller: cityController,
+                onChanged: (value) => geocodeAndUpdateMap(),
                 decoration: InputDecoration(
                   labelText: 'City',
                   labelStyle: AppTextStyles.bodyLarge.copyWith(
@@ -256,6 +318,7 @@ class SkillsSetupScreen extends ConsumerWidget {
                   prefixIcon: Icon(Icons.location_city, color: AppColors.onSurfaceVariant),
                   filled: true,
                   fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
@@ -276,6 +339,7 @@ class SkillsSetupScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               TextFormField(
                 controller: regionController,
+                onChanged: (value) => geocodeAndUpdateMap(),
                 decoration: InputDecoration(
                   labelText: 'Region',
                   labelStyle: AppTextStyles.bodyLarge.copyWith(
@@ -285,6 +349,7 @@ class SkillsSetupScreen extends ConsumerWidget {
                   prefixIcon: Icon(Icons.map, color: AppColors.onSurfaceVariant),
                   filled: true,
                   fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
@@ -305,6 +370,7 @@ class SkillsSetupScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               TextFormField(
                 controller: postalCodeController,
+                onChanged: (value) => geocodeAndUpdateMap(),
                 decoration: InputDecoration(
                   labelText: 'Postal Code',
                   labelStyle: AppTextStyles.bodyLarge.copyWith(
@@ -314,6 +380,7 @@ class SkillsSetupScreen extends ConsumerWidget {
                   prefixIcon: Icon(Icons.local_post_office, color: AppColors.onSurfaceVariant),
                   filled: true,
                   fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(color: Color(0xFFDDDDDD)),
@@ -334,18 +401,11 @@ class SkillsSetupScreen extends ConsumerWidget {
 
               const SizedBox(height: 16),
 
-              // Dummy Map
-              Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.surfaceVariant),
-                  color: AppColors.surface,
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Image.asset(
-                  'assets/images/map.png',
-                  fit: BoxFit.cover,
+              // Interactive OSM Map — tap to set your service location
+              SizedBox(
+                child: OSMLocationMap(
+                  initialPosition: currentMapPosition,
+                  onLocationChanged: reverseGeocodeAndUpdateFields,
                 ),
               ),
 

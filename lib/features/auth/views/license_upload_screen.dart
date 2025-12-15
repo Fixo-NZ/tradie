@@ -13,7 +13,7 @@ class LicenseUploadScreen extends ConsumerWidget {
   const LicenseUploadScreen({super.key});
 
   static const Color kCustomBlue = Color.fromRGBO(9, 12, 155, 1.0);
-  static const double fixedContainerHeight = 160.0; // Defined fixed height
+  static const double defaultContainerHeight = 200.0; // Default height for empty state
 
   Future<void> _pickLicenseFile(BuildContext context, WidgetRef ref) async {
     final picker = ImagePicker();
@@ -142,35 +142,36 @@ class LicenseUploadScreen extends ConsumerWidget {
               const SizedBox(height: 12),
 
               DashedContainer(
-                height: fixedContainerHeight, // Apply fixed height
+                height: state.licenseFiles.isEmpty ? defaultContainerHeight : null,
                 borderRadius: BorderRadius.circular(8),
-                padding: const EdgeInsets.all(12),
-                child: state.licenseFiles.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.description_outlined,
-                                size: 36, color: Colors.black38),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Upload License Documents',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.onSurfaceVariant,
+                padding: const EdgeInsets.all(20),
+                child: SizedBox(
+                  width: double.infinity, // Full width
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (state.licenseFiles.isEmpty)
+                        // Empty state content
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.description_outlined,
+                                  size: 48, color: Colors.black38),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Upload License Documents',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: () => _pickLicenseFile(context, ref),
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: kCustomBlue),
-                              child: const Text('Upload File'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : SingleChildScrollView( // Allow scrolling when files are present
-                        child: Wrap(
+                            ],
+                          ),
+                        )
+                      else
+                        // Images display
+                        Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: state.licenseFiles
@@ -217,21 +218,26 @@ class LicenseUploadScreen extends ConsumerWidget {
                             );
                           }).toList(),
                         ),
+                      
+                      // Upload button always at bottom center inside dashed border
+                      if (state.licenseFiles.isNotEmpty) const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () => _pickLicenseFile(context, ref),
+                        icon: Icon(state.licenseFiles.isEmpty ? Icons.upload_file : Icons.add),
+                        label: Text(state.licenseFiles.isEmpty ? 'Upload File' : 'Add More'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kCustomBlue,
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
                       ),
-              ),
-
-              // "Add More" button is placed outside the dashed container
-              if (state.licenseFiles.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12.0),
-                  child: ElevatedButton.icon(
-                    onPressed: () => _pickLicenseFile(context, ref),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add More'),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: kCustomBlue),
+                      if (state.licenseFiles.isEmpty) const SizedBox(height: 8),
+                    ],
                   ),
                 ),
+              ),
 
               const SizedBox(height: 24),
 
@@ -245,43 +251,44 @@ class LicenseUploadScreen extends ConsumerWidget {
               const SizedBox(height: 12),
 
               DashedContainer(
-                height: fixedContainerHeight, // Apply fixed height
+                height: state.idFiles.isEmpty ? defaultContainerHeight : null,
                 borderRadius: BorderRadius.circular(8),
-                padding: const EdgeInsets.all(12),
-                child: state.idFiles.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.image_not_supported_outlined,
-                                size: 36, color: Colors.black38),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Upload Valid ID Images',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.onSurfaceVariant,
+                padding: const EdgeInsets.all(20),
+                child: SizedBox(
+                  width: double.infinity, // Full width
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (state.idFiles.isEmpty)
+                        // Empty state content
+                        Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.image_not_supported_outlined,
+                                  size: 48, color: Colors.black38),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Upload Valid ID Images',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'PNG, JPG, PDF up to 10MB',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.onSurfaceVariant,
-                                fontSize: 12,
+                              const SizedBox(height: 4),
+                              Text(
+                                'PNG, JPG, PDF up to 10MB',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: () => _pickIdFile(context, ref),
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: kCustomBlue),
-                              child: const Text('Upload File'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : SingleChildScrollView( // Allow scrolling when files are present
-                        child: Wrap(
+                            ],
+                          ),
+                        )
+                      else
+                        // Images display
+                        Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: state.idFiles
@@ -327,21 +334,26 @@ class LicenseUploadScreen extends ConsumerWidget {
                             );
                           }).toList(),
                         ),
+                      
+                      // Upload button always at bottom center inside dashed border
+                      if (state.idFiles.isNotEmpty) const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () => _pickIdFile(context, ref),
+                        icon: Icon(state.idFiles.isEmpty ? Icons.upload_file : Icons.add),
+                        label: Text(state.idFiles.isEmpty ? 'Upload File' : 'Add More'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kCustomBlue,
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
                       ),
-              ),
-
-              // "Add More" button is placed outside the dashed container
-              if (state.idFiles.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12.0),
-                  child: ElevatedButton.icon(
-                    onPressed: () => _pickIdFile(context, ref),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add More'),
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: kCustomBlue),
+                      if (state.idFiles.isEmpty) const SizedBox(height: 8),
+                    ],
                   ),
                 ),
+              ),
 
               const SizedBox(height: 80),
             ],

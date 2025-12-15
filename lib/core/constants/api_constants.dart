@@ -5,9 +5,13 @@ class ApiConstants {
   // Main API URL
   //static const String baseUrl = "http://192.168.4.111:8000/api/tradie"; 
   static const String baseUrl = "http://10.0.2.2:8000/api/tradie";   //For testing - Kath
+  //static const String baseUrl = "http://192.168.100.53:8000/api/tradie"; //For testing - Erika
+  // static const String baseUrl = "http://192.168.5.7:8000/api/tradie"; //For testing - Erika school
   // Public assets URL
   //static const String publicBaseUrl = "http://192.168.4.111:8000";   
   static const String publicBaseUrl = "http://10.0.2.2:8000";   //For testing - Kath
+  //static const String publicBaseUrl = "http://192.168.100.53:8000"; //For testing - Erika
+  // static const String publicBaseUrl = "http://192.168.5.7:8000"; //For testing - Erika school
 
 
   // Alternative URLs (for emulator or different networks)
