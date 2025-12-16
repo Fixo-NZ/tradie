@@ -246,7 +246,7 @@ class _YearMonthPickerScreenState extends State<YearMonthPickerScreen> {
                     alignment: Alignment.center,
                     decoration: isToday
                         ? BoxDecoration(
-                            color: Colors.blue.shade600,
+                            color: const Color.fromARGB(124, 48, 102, 190),
                             shape: BoxShape.circle,
                           )
                         : null,

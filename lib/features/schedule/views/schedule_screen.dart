@@ -43,21 +43,88 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
       return _buildErrorScreen(scheduleState.error!);
     }
 
-    // Group schedules by date
+    // Group schedules by date (including multi-day events)
     Map<DateTime, List<ScheduleModel>> events = {};
+    Set<DateTime> multiDayEventDates = {};
+    
     for (var appt in scheduleState.schedules) {
-      final date = DateTime(
+      final startDate = DateTime(
         appt.startDateTime.year,
         appt.startDateTime.month,
         appt.startDateTime.day,
       );
-      events[date] = (events[date] ?? [])..add(appt);
+      final endDate = DateTime(
+        appt.endDateTime.year,
+        appt.endDateTime.month,
+        appt.endDateTime.day,
+      );
+      
+      // Add event to all days it spans
+      DateTime currentDate = startDate;
+      while (currentDate.isBefore(endDate) || currentDate.isAtSameMomentAs(endDate)) {
+        events[currentDate] = (events[currentDate] ?? [])..add(appt);
+        
+        // Track multi-day event dates for highlighting
+        if (!currentDate.isAtSameMomentAs(startDate) || !currentDate.isAtSameMomentAs(endDate)) {
+          multiDayEventDates.add(currentDate);
+        }
+        
+        currentDate = currentDate.add(const Duration(days: 1));
+      }
     }
 
-    // Events for selected day
+    // Events for selected day and multi-day range highlighting
     final selectedEvents = events[_selectedDay] ?? [];
+    final selectedDayMultiDayEvents = _getMultiDayEventsForSelectedDay(selectedEvents);
 
-    return _buildScheduleScreen(scheduleState, events, selectedEvents);
+    return _buildScheduleScreen(scheduleState, events, selectedEvents, selectedDayMultiDayEvents);
+  }
+
+  /// Get multi-day events that span the selected day
+  List<ScheduleModel> _getMultiDayEventsForSelectedDay(List<ScheduleModel> dayEvents) {
+    if (_selectedDay == null) return [];
+    
+    return dayEvents.where((event) {
+      final startDate = DateTime(
+        event.startDateTime.year,
+        event.startDateTime.month,
+        event.startDateTime.day,
+      );
+      final endDate = DateTime(
+        event.endDateTime.year,
+        event.endDateTime.month,
+        event.endDateTime.day,
+      );
+      
+      // Return events that span multiple days
+      return !startDate.isAtSameMomentAs(endDate);
+    }).toList();
+  }
+
+  /// Get all dates that should be highlighted for multi-day events
+  Set<DateTime> _getHighlightedDatesForMultiDayEvents(List<ScheduleModel> multiDayEvents) {
+    Set<DateTime> highlightedDates = {};
+    
+    for (var event in multiDayEvents) {
+      final startDate = DateTime(
+        event.startDateTime.year,
+        event.startDateTime.month,
+        event.startDateTime.day,
+      );
+      final endDate = DateTime(
+        event.endDateTime.year,
+        event.endDateTime.month,
+        event.endDateTime.day,
+      );
+      
+      DateTime currentDate = startDate;
+      while (currentDate.isBefore(endDate) || currentDate.isAtSameMomentAs(endDate)) {
+        highlightedDates.add(currentDate);
+        currentDate = currentDate.add(const Duration(days: 1));
+      }
+    }
+    
+    return highlightedDates;
   }
 
   Widget _buildLoadingScreen() {
@@ -186,7 +253,9 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
     );
   }
 
-  Widget _buildScheduleScreen(ScheduleState scheduleState, Map<DateTime, List<ScheduleModel>> events, List<ScheduleModel> selectedEvents) {
+  Widget _buildScheduleScreen(ScheduleState scheduleState, Map<DateTime, List<ScheduleModel>> events, List<ScheduleModel> selectedEvents, List<ScheduleModel> selectedDayMultiDayEvents) {
+    // Get highlighted dates for multi-day events
+    final highlightedDates = _getHighlightedDatesForMultiDayEvents(selectedDayMultiDayEvents);
     return Scaffold(
       appBar: AppBar(
         title: Text('Schedules', style: AppTextStyles.appBarTitle),
@@ -263,6 +332,46 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                   outsideDaysVisible: false,
                 ),
                 calendarBuilders: CalendarBuilders(
+                  // Highlight multi-day event ranges
+                  defaultBuilder: (context, day, focusedDay) {
+                    final dayDate = DateTime(day.year, day.month, day.day);
+                    final isHighlighted = highlightedDates.contains(dayDate);
+                    final isSunday = day.weekday == DateTime.sunday;
+                    
+                    if (isHighlighted) {
+                      // Show highlighted background for multi-day events
+                      return Container(
+                        margin: const EdgeInsets.all(4.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF3066BE).withOpacity(0.1),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF3066BE).withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${day.day}',
+                            style: TextStyle(
+                              color: isSunday ? Colors.red : Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    
+                    // Default styling for non-highlighted days
+                    return Center(
+                      child: Text(
+                        '${day.day}',
+                        style: TextStyle(
+                          color: isSunday ? const Color(0xFFFF0000) : const Color(0xFFB3B3B3),
+                        ),
+                      ),
+                    );
+                  },
                   headerTitleBuilder: (context, date) {
                     return GestureDetector(
                       onTap: () {
@@ -306,6 +415,32 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       ),
                     );
                   },
+                  selectedBuilder: (context, day, focusedDay) {
+                    final dayDate = DateTime(day.year, day.month, day.day);
+                    final isHighlighted = highlightedDates.contains(dayDate);
+                    
+                    return Container(
+                      margin: const EdgeInsets.all(4.0),
+                      decoration: BoxDecoration(
+                        color: isHighlighted 
+                            ? const Color(0xFF3066BE).withOpacity(0.8)
+                            : const Color(0xFF3066BE),
+                        shape: BoxShape.circle,
+                        border: isHighlighted 
+                            ? Border.all(color: const Color(0xFF3066BE), width: 2)
+                            : null,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${day.day}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                   dowBuilder: (context, day) {
                     if (day.weekday == DateTime.sunday) {
                       return Center(
@@ -320,15 +455,22 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                     return null; // Use default style for other days
                   },
                   todayBuilder: (context, day, focused) {
-                    return Center(
-                      child: Container(
-                        width: 35,
-                        height: 35,
-                        decoration: BoxDecoration(
-                          color: const Color.fromARGB(124, 48, 102, 190),
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
+                    final dayDate = DateTime(day.year, day.month, day.day);
+                    final isHighlighted = highlightedDates.contains(dayDate);
+                    
+                    return Container(
+                      margin: const EdgeInsets.all(4.0),
+                      decoration: BoxDecoration(
+                        color: isHighlighted 
+                            ? const Color.fromARGB(180, 48, 102, 190)
+                            : const Color.fromARGB(124, 48, 102, 190),
+                        // borderRadius: BorderRadius.circular(radius),
+                        shape: BoxShape.circle,
+                        border: isHighlighted 
+                            ? Border.all(color: const Color(0xFF3066BE), width: 2)
+                            : null,
+                      ),
+                      child: Center(
                         child: Text(
                           '${day.day}',
                           style: const TextStyle(
@@ -339,20 +481,6 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                       ),
                     );
                   },
-                  defaultBuilder: (context, day, focusedDay) {
-                    final isSunday = day.weekday == DateTime.sunday;
-
-                    return Center(
-                      child: Text(
-                        '${day.day}',
-                        style: TextStyle(
-                          color: isSunday
-                              ? const Color(0xFFFF0000)
-                              : const Color(0xFFB3B3B3),
-                        ),
-                      ),
-                    );
-                  },   
                   markerBuilder: (context, day, events) {
                     if (events.isEmpty) return const SizedBox();
 
@@ -393,7 +521,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                             Row(
                               children: [
                                 Text(
-                                  '${ DateFormat('hh:mm a').format(event.startDateTime)} - ${DateFormat('hh:mm a').format(event.endDateTime)}',
+                                  '${ DateFormat('MMM dd').format(event.startDateTime)} - ${DateFormat('MMM dd').format(event.endDateTime)}',
                                   style: TextStyle(color: Color(0xFF757575)),
                                 ),
                                 SizedBox(width: 10),
@@ -429,7 +557,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                                     child: ListTile(
                                       title: Text(
                                         event.title,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -475,5 +603,21 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
         ),
       ),
     );
+  }
+
+  /// Check if an event spans multiple days
+  bool _isMultiDayEvent(ScheduleModel event) {
+    final startDate = DateTime(
+      event.startDateTime.year,
+      event.startDateTime.month,
+      event.startDateTime.day,
+    );
+    final endDate = DateTime(
+      event.endDateTime.year,
+      event.endDateTime.month,
+      event.endDateTime.day,
+    );
+    
+    return !startDate.isAtSameMomentAs(endDate);
   }
 }

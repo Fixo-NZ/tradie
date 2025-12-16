@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:tradie/features/schedule/models/schedule_model.dart';
 import 'package:tradie/features/schedule/viewmodels/schedule_viewmodel.dart';
 
@@ -93,6 +94,102 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
         ],
       ),
     );
+  }
+
+  void showConflictDialog(List<ScheduleModel> conflictingEvents) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Scheduling Conflict'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Your selected time conflicts with existing appointments:',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 16),
+            ...conflictingEvents.map((event) => Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.access_time, size: 14, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          '${_formatDateTime(event.startDateTime)} - ${_formatDateTime(event.endDateTime)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (event.description.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      event.description,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ],
+              ),
+            )).toList(),
+            const SizedBox(height: 8),
+            const Text(
+              'Please choose a different time to avoid conflicts.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final date = DateFormat('MMM d, y').format(dateTime);
+    final time = DateFormat('h:mm a').format(dateTime);
+    return '$date at $time';
   }
 
 
@@ -372,12 +469,13 @@ class _EditEventSheetState extends ConsumerState<EditEventSheet> {
                         .where((e) => e.id != widget.event.id)
                         .toList();
 
-                  final hasConflict = schedules.any((e) {
+                  // Find all conflicting events
+                  final conflictingEvents = schedules.where((e) {
                       return e.startDateTime.isBefore(newEnd) && e.endDateTime.isAfter(newStart);
-                  });
+                  }).toList();
 
-                  if (hasConflict) {
-                    showMessageDialog("Conflicting appointment. Please choose another time.");
+                  if (conflictingEvents.isNotEmpty) {
+                    showConflictDialog(conflictingEvents);
                     return;
                   }
 
