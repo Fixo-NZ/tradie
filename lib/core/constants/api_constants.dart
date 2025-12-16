@@ -23,6 +23,12 @@ class ApiConstants {
   static const String notifications = '/notifications';
   static String markNotificationRead(String id) => '/notifications/$id/read';
 
+  // Booking actions
+  static String acceptBooking(String bookingId) =>
+      '/bookings/$bookingId/accept';
+  static String declineBooking(String bookingId) =>
+      '/bookings/$bookingId/decline';
+
   // Headers
   static const String contentType = 'application/json';
   static const String accept = 'application/json';
