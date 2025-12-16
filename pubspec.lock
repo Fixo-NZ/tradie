@@ -5,18 +5,32 @@ packages:
     dependency: transitive
     description:
       name: _fe_analyzer_shared
+<<<<<<< HEAD
       sha256: c209688d9f5a5f26b2fb47a188131a6fb9e876ae9e47af3737c0b4f58a93470d
       url: "https://pub.dev"
     source: hosted
     version: "91.0.0"
+=======
+      sha256: da0d9209ca76bde579f2da330aeb9df62b6319c834fa7baae052021b0462401f
+      url: "https://pub.dev"
+    source: hosted
+    version: "85.0.0"
+>>>>>>> origin/g8/mobile-login
   analyzer:
     dependency: transitive
     description:
       name: analyzer
+<<<<<<< HEAD
       sha256: f51c8499b35f9b26820cfe914828a6a98a94efd5cc78b37bb7d03debae3a1d08
       url: "https://pub.dev"
     source: hosted
     version: "8.4.1"
+=======
+      sha256: "974859dc0ff5f37bc4313244b3218c791810d03ab3470a579580279ba971a48d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.7.1"
+>>>>>>> origin/g8/mobile-login
   args:
     dependency: transitive
     description:
@@ -29,10 +43,10 @@ packages:
     dependency: transitive
     description:
       name: async
-      sha256: "758e6d74e971c3e5aceb4110bfd6698efc7f501675bcfe0c775459a8140750eb"
+      sha256: d2872f9c19731c2e5f10444b14686eb7cc85c76274bd6c16e1816bff9a3bab63
       url: "https://pub.dev"
     source: hosted
-    version: "2.13.0"
+    version: "2.12.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -45,18 +59,25 @@ packages:
     dependency: transitive
     description:
       name: build
+<<<<<<< HEAD
       sha256: dfb67ccc9a78c642193e0c2d94cb9e48c2c818b3178a86097d644acdcde6a8d9
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
+=======
+      sha256: "51dc711996cbf609b90cbe5b335bbce83143875a9d58e4b5c6d3c4f684d3dda7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.4"
+>>>>>>> origin/g8/mobile-login
   build_config:
     dependency: transitive
     description:
       name: build_config
-      sha256: "4f64382b97504dc2fcdf487d5aae33418e08b4703fc21249e4db6d804a4d0187"
+      sha256: "4ae2de3e1e67ea270081eaee972e1bd8f027d459f249e0f1186730784c2e7e33"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.0"
+    version: "1.1.2"
   build_daemon:
     dependency: transitive
     description:
@@ -64,15 +85,42 @@ packages:
       sha256: "409002f1adeea601018715d613115cfaf0e31f512cb80ae4534c79867ae2363d"
       url: "https://pub.dev"
     source: hosted
+<<<<<<< HEAD
     version: "4.1.0"
+=======
+    version: "4.0.4"
+  build_resolvers:
+    dependency: transitive
+    description:
+      name: build_resolvers
+      sha256: ee4257b3f20c0c90e72ed2b57ad637f694ccba48839a821e87db762548c22a62
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.4"
+>>>>>>> origin/g8/mobile-login
   build_runner:
     dependency: "direct dev"
     description:
       name: build_runner
+<<<<<<< HEAD
       sha256: a9461b8e586bf018dd4afd2e13b49b08c6a844a4b226c8d1d10f3a723cdd78c3
       url: "https://pub.dev"
     source: hosted
     version: "2.10.1"
+=======
+      sha256: "382a4d649addbfb7ba71a3631df0ec6a45d5ab9b098638144faf27f02778eb53"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.4"
+  build_runner_core:
+    dependency: transitive
+    description:
+      name: build_runner_core
+      sha256: "85fbbb1036d576d966332a3f5ce83f2ce66a40bea1a94ad2d5fc29a19a0d3792"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.1.2"
+>>>>>>> origin/g8/mobile-login
   built_collection:
     dependency: transitive
     description:
@@ -101,10 +149,10 @@ packages:
     dependency: transitive
     description:
       name: checked_yaml
-      sha256: "959525d3162f249993882720d52b7e0c833978df229be20702b33d48d91de70f"
+      sha256: feb6bed21949061731a7a75fc5d2aa727cf160b91af9a3e464c5e3a32e28b5ff
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.4"
+    version: "2.0.3"
   clock:
     dependency: transitive
     description:
@@ -165,10 +213,10 @@ packages:
     dependency: transitive
     description:
       name: dart_style
-      sha256: c87dfe3d56f183ffe9106a18aebc6db431fc7c98c31a54b952a77f3d54a85697
+      sha256: "8a0e5fba27e8ee025d2ffb4ee820b4e6e2cf5e4246a6b1a477eb66866947e0bb"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.2"
+    version: "3.1.1"
   dio:
     dependency: "direct main"
     description:
@@ -457,7 +505,11 @@ packages:
     source: hosted
     version: "2.3.2"
   http:
+<<<<<<< HEAD
     dependency: "direct main"
+=======
+    dependency: transitive
+>>>>>>> origin/g8/mobile-login
     description:
       name: http
       sha256: bb2ce4590bc2667c96f318d68cac1b5a7987ec819351d32b1c987239a815e007
@@ -580,6 +632,7 @@ packages:
     dependency: "direct dev"
     description:
       name: json_serializable
+<<<<<<< HEAD
       sha256: "33a040668b31b320aafa4822b7b1e177e163fc3c1e835c6750319d4ab23aa6fe"
       url: "https://pub.dev"
     source: hosted
@@ -592,6 +645,12 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.1"
+=======
+      sha256: c50ef5fc083d5b5e12eef489503ba3bf5ccc899e487d691584699b4bdefeea8c
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.9.5"
+>>>>>>> origin/g8/mobile-login
   leak_tracker:
     dependency: transitive
     description:
@@ -668,9 +727,10 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c
+      sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
       url: "https://pub.dev"
     source: hosted
+<<<<<<< HEAD
     version: "1.16.0"
   mgrs_dart:
     dependency: transitive
@@ -680,6 +740,9 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+=======
+    version: "1.17.0"
+>>>>>>> origin/g8/mobile-login
   mime:
     dependency: transitive
     description:
@@ -913,10 +976,17 @@ packages:
     dependency: transitive
     description:
       name: source_gen
+<<<<<<< HEAD
       sha256: "9098ab86015c4f1d8af6486b547b11100e73b193e1899015033cb3e14ad20243"
       url: "https://pub.dev"
     source: hosted
     version: "4.0.2"
+=======
+      sha256: "35c8150ece9e8c8d263337a265153c3329667640850b9304861faea59fc98f6b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
+>>>>>>> origin/g8/mobile-login
   source_helper:
     dependency: transitive
     description:
@@ -985,10 +1055,22 @@ packages:
     dependency: transitive
     description:
       name: test_api
-      sha256: "522f00f556e73044315fa4585ec3270f1808a4b186c936e612cab0b565ff1e00"
+      sha256: ab2726c1a94d3176a45960b6234466ec367179b87dd74f1611adb1f3b5fb9d55
       url: "https://pub.dev"
     source: hosted
+<<<<<<< HEAD
     version: "0.7.6"
+=======
+    version: "0.7.7"
+  timing:
+    dependency: transitive
+    description:
+      name: timing
+      sha256: "62ee18aca144e4a9f29d212f5a4c6a053be252b895ab14b5821996cff4ed90fe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
+>>>>>>> origin/g8/mobile-login
   typed_data:
     dependency: transitive
     description:
@@ -1089,10 +1171,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: "45caa6c5917fa127b5dbcfbd1fa60b14e583afdc08bfc96dda38886ca252eb60"
+      sha256: "0968250880a6c5fe7edc067ed0a13d4bae1577fe2771dcf3010d52c4a9d3ca14"
       url: "https://pub.dev"
     source: hosted
-    version: "15.0.2"
+    version: "14.3.1"
   watcher:
     dependency: transitive
     description:
@@ -1129,6 +1211,7 @@ packages:
     dependency: transitive
     description:
       name: win32
+<<<<<<< HEAD
       sha256: d7cb55e04cd34096cd3a79b3330245f54cb96a370a1c27adb3c84b917de8b08e
       url: "https://pub.dev"
     source: hosted
@@ -1141,6 +1224,12 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+=======
+      sha256: "329edf97fdd893e0f1e3b9e88d6a0e627128cc17cc316a8d67fda8f1451178ba"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.13.0"
+>>>>>>> origin/g8/mobile-login
   xdg_directories:
     dependency: transitive
     description:
@@ -1158,5 +1247,10 @@ packages:
     source: hosted
     version: "3.1.3"
 sdks:
+<<<<<<< HEAD
   dart: ">=3.9.0 <4.0.0"
   flutter: ">=3.35.0"
+=======
+  dart: ">=3.8.0-0 <4.0.0"
+  flutter: ">=3.29.0"
+>>>>>>> origin/g8/mobile-login

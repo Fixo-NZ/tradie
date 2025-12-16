@@ -3,32 +3,69 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/views/register_screen.dart';
 import '../../features/auth/views/dashboard_screen.dart';
+<<<<<<< HEAD
 
+=======
+import '../../features/auth/views/reset_password_screen.dart';
+>>>>>>> origin/g8/mobile-login
 import '../../features/auth/viewmodels/auth_viewmodel.dart';
+import '../../features/auth/views/splash_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
+  // --- 1. Watch the ViewModel and get the new status ---
   final authState = ref.watch(authViewModelProvider);
+  final appStatus = authState.status;
 
   return GoRouter(
-    initialLocation: '/login',
-    redirect: (context, state) {
-      final isAuthenticated = authState.isAuthenticated;
-      final isLoggingIn = state.matchedLocation == '/login';
-      final isRegistering = state.matchedLocation == '/register';
+    initialLocation: '/', // Start at splash screen
 
-      // If not authenticated and not on login/register page, redirect to login
-      if (!isAuthenticated && !isLoggingIn && !isRegistering) {
+    // --- 2. This is the new, more powerful redirect logic ---
+    redirect: (context, state) {
+      final location = state.matchedLocation;
+
+      // If the app is still initializing, stay on the splash screen
+      if (appStatus == AppStatus.initializing) {
+        // Stay on splash, or go to splash if we are anywhere else
+        return (location == '/') ? null : '/';
+      }
+
+      // If the user is unauthenticated
+      if (appStatus == AppStatus.unauthenticated) {
+        // If they are on the login, register, or reset password page, let them be
+        if (location == '/login' ||
+            location == '/register' ||
+            location == '/reset-password') {
+          return null;
+        }
+        // If they are anywhere else, redirect to login
         return '/login';
       }
 
-      // If authenticated and on login/register page, redirect to dashboard
-      if (isAuthenticated && (isLoggingIn || isRegistering)) {
-        return '/dashboard';
+      // If the user is authenticated
+      if (appStatus == AppStatus.authenticated) {
+        // If they are on the splash or login/register pages, send to dashboard
+        if (location == '/' || location == '/login' || location == '/register') {
+          return '/dashboard';
+        }
       }
 
+      // No other rule matched, so stay where you are
       return null;
     },
+    // --- End of new redirect logic ---
+
     routes: [
+<<<<<<< HEAD
+=======
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+>>>>>>> origin/g8/mobile-login
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -36,6 +73,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/dashboard',
         builder: (context, state) => const DashboardScreen(), // Replace with your actual DashboardScreen widget
+      ),
+      GoRoute(
+        path: '/reset-password',
+        builder: (context, state) => const ResetPasswordScreen(),
       ),
     ],
   );

@@ -33,7 +33,6 @@ class DioClient {
         onError: (error, handler) async {
           if (error.response?.statusCode == 401) {
             await _storage.delete(key: 'access_token');
-            // You can add navigation to login screen here
           }
           handler.next(error);
         },

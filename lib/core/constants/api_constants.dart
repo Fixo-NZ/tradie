@@ -1,4 +1,5 @@
 class ApiConstants {
+<<<<<<< HEAD
  
   // Base URLs
   // NOTE: Do not remove these URLs just in case we need to switch between local and public servers
@@ -34,12 +35,29 @@ class ApiConstants {
   static const String basicInfoEndpoint = '/profile-setup/basic-info';
   static const String skillsEndpoint = '/profile-setup/skills';
   static const String licenseUploadEndpoint = '/profile-setup/licenses';
+=======
+  static const String baseUrl = 'http://10.0.2.2:8000/api';
+
+  // Auth
+  static const String loginEndpoint = '/tradie/login';
+  static const String registerEndpoint = '/tradie/register';
+  static const String logoutEndpoint = '/tradie/logout';
+
+  // Password Reset
+  static const String requestPasswordResetEndpoint = '/tradie/reset-password-request';
+  static const String verifyPasswordResetOtpEndpoint = '/tradie/verify-otp';
+  static const String setNewPasswordEndpoint = '/tradie/reset-password';
+>>>>>>> origin/g8/mobile-login
 
   // Headers
   static const String contentType = 'application/json';
   static const String accept = 'application/json';
   static const String authorization = 'Authorization';
   static const String bearer = 'Bearer';
+<<<<<<< HEAD
 }
 
 
+=======
+}
+>>>>>>> origin/g8/mobile-login
