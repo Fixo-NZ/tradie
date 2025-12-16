@@ -86,19 +86,20 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final email = vmState.email;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: false, // Prevents layout squishing
+      backgroundColor: Colors.white,
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: Stack(
         children: [
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.33,
-              width: double.infinity,
-              child: Image.asset(
-                "assets/background.png",
-                fit: BoxFit.cover,
-              ),
+          // Background Image (Consistent with other screens)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.33,
+            child: Image.asset(
+              "assets/background.png",
+              fit: BoxFit.cover,
             ),
           ),
           Padding(
@@ -106,18 +107,21 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 horizontal: AppDimensions.paddingLarge),
             child: Column(
               children: [
+                // --- Top Section (1/3) ---
                 Expanded(
                   flex: 1,
-                  // --- FIX: Added SingleChildScrollView ---
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 10),
+                        // Added logo here for consistency, optional
+                        Image.asset("assets/logo.png", height: 60),
+                        const SizedBox(height: 15),
                         Text(
-                          "Enter Verification Code",
+                          "Verification Code",
                           style: AppTextStyles.displaySmall
-                              .copyWith(fontSize: 28),
+                              .copyWith(fontSize: 26),
                         ),
                         const SizedBox(height: 5),
                         Text(
@@ -126,7 +130,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           style: AppTextStyles.bodyLarge
                               .copyWith(color: AppColors.onSurfaceVariant),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 5),
                         Text(
                           email,
                           style: AppTextStyles.titleMedium
@@ -137,18 +141,27 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     ),
                   ),
                 ),
+
+                // --- Middle Section (1/3) ---
+                // Added SingleChildScrollView so OTP boxes don't overflow on tiny screens
                 Expanded(
                   flex: 1,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(6, (i) => _buildOtpBox(i)),
-                      ),
-                    ],
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: List.generate(6, (i) => _buildOtpBox(i)),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
                   ),
                 ),
+
+                // --- Bottom Section (1/3) ---
                 Expanded(
                   flex: 1,
                   child: Center(

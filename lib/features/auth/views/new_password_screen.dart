@@ -60,8 +60,8 @@ class _NewPasswordScreenState extends ConsumerState<NewPasswordScreen> {
         .watch(resetPasswordViewModelProvider.select((s) => s.isLoading));
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: false, // Prevents squishing when keyboard opens
+      backgroundColor: Colors.white,
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: Stack(
         children: [
@@ -79,9 +79,9 @@ class _NewPasswordScreenState extends ConsumerState<NewPasswordScreen> {
             key: _formKey,
             child: Column(
               children: [
+                // --- Top Section (1/3) ---
                 Expanded(
                   flex: 1,
-                  // --- FIX: Added SingleChildScrollView ---
                   child: SingleChildScrollView(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -102,41 +102,50 @@ class _NewPasswordScreenState extends ConsumerState<NewPasswordScreen> {
                     ),
                   ),
                 ),
+
+                // --- Middle Section (1/3) ---
+                // Added SingleChildScrollView so errors don't clip text
                 Expanded(
                   flex: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.paddingLarge),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            labelText: "New Password",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.paddingLarge),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: "New Password",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
+                            validator: _validatePassword,
                           ),
-                          validator: _validatePassword,
-                        ),
-                        const SizedBox(height: AppDimensions.spacing16),
-                        TextFormField(
-                          controller: _confirmPasswordController,
-                          obscureText: true,
-                          decoration: InputDecoration(
-                            labelText: "Confirm New Password",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+                          const SizedBox(height: AppDimensions.spacing16),
+                          TextFormField(
+                            controller: _confirmPasswordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: "Confirm New Password",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
+                            validator: _validateConfirmPassword,
                           ),
-                          validator: _validateConfirmPassword,
-                        ),
-                      ],
+                          const SizedBox(height: 10),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+
+                // --- Bottom Section (1/3) ---
                 Expanded(
                   flex: 1,
                   child: Center(

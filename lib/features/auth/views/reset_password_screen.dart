@@ -78,13 +78,11 @@ class __EnterEmailViewState extends ConsumerState<_EnterEmailView> {
     }
   }
 
-  // --- UPDATED: Email Only Validator ---
   String? _validateEmailOnly(String? value) {
     if (value == null || value.isEmpty) {
       return "Please enter your Email Address";
     }
     final input = value.trim();
-    // Standard email regex
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
 
     if (!emailRegex.hasMatch(input)) {
@@ -99,11 +97,12 @@ class __EnterEmailViewState extends ConsumerState<_EnterEmailView> {
         .watch(resetPasswordViewModelProvider.select((s) => s.isLoading));
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: false, // Prevents layout squishing
+      backgroundColor: Colors.white,
       appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: Stack(
         children: [
+          // Background Image
           Positioned(
             bottom: 0,
             left: 0,
@@ -118,6 +117,7 @@ class __EnterEmailViewState extends ConsumerState<_EnterEmailView> {
             key: _formKey,
             child: Column(
               children: [
+                // --- Top Section (1/3) ---
                 Expanded(
                   flex: 1,
                   child: SingleChildScrollView(
@@ -132,7 +132,6 @@ class __EnterEmailViewState extends ConsumerState<_EnterEmailView> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Text(
-                            // --- UPDATED TEXT ---
                             "Enter the Email Address registered to your account",
                             textAlign: TextAlign.center,
                             style: AppTextStyles.bodyLarge
@@ -144,32 +143,40 @@ class __EnterEmailViewState extends ConsumerState<_EnterEmailView> {
                     ),
                   ),
                 ),
+
+                // --- Middle Section (1/3) ---
+                // Wrapped in SingleChildScrollView to prevent overflow
                 Expanded(
                   flex: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppDimensions.paddingLarge),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextFormField(
-                          controller: _emailController,
-                          // --- UPDATED KEYBOARD & DECORATION ---
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: InputDecoration(
-                            labelText: "Email Address",
-                            hintText: "example@email.com",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppDimensions.paddingLarge),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              labelText: "Email Address",
+                              hintText: "example@email.com",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              prefixIcon: const Icon(Icons.email_outlined),
                             ),
-                            prefixIcon: const Icon(Icons.email_outlined),
+                            validator: _validateEmailOnly,
                           ),
-                          validator: _validateEmailOnly,
-                        ),
-                      ],
+                          const SizedBox(height: 10),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+
+                // --- Bottom Section (1/3) ---
                 Expanded(
                   flex: 1,
                   child: Center(
