@@ -16,10 +16,61 @@ class JobDetailsScreen extends ConsumerWidget {
     final state = ref.watch(scheduleViewModelProvider);
 
     // Find the event in the provider's list
-    final event = state.schedules.firstWhere(
-      (e) => e.id == eventId,
-      // orElse: () => null,
-    );
+    final event = state.schedules.where((e) => e.id == eventId).firstOrNull;
+    
+    // If event not found, show error screen
+    if (event == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Job Details',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.black
+            ),
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            color: Colors.black,
+            onPressed: () => context.pop(),
+          ),
+          backgroundColor: const Color(0xFFF8F9FF),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Job not found',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Job ID: $eventId',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  // Refresh schedules and try again
+                  ref.read(scheduleViewModelProvider.notifier).loadSchedules();
+                },
+                child: const Text('Refresh'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     final duration = event.endDateTime.difference(event.startDateTime);
     final hours = duration.inHours;

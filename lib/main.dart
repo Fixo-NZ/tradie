@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/push_notification_service.dart';
+import 'core/services/navigation_service.dart';
 
 // Background message handler (must be top-level)
 @pragma('vm:entry-point')
@@ -36,9 +37,16 @@ void main() async {
         // Handle job reminder notifications from Laravel backend
         final notificationType = data['type'] ?? data['notification_type'];
         
+        print("🔍 NOTIFICATION DEBUG:");
+        print("📋 Type: $notificationType");
+        print("📋 Full data: $data");
+        
         if (notificationType == 'job_reminder') {
+          print("✅ Job reminder detected - processing...");
           // This handles notifications from your Laravel sendJobReminderToTradie function
           PushNotificationService.handleJobReminder(data);
+        } else {
+          print("⚠️ Unknown notification type: $notificationType");
         }
       },
     );
@@ -128,6 +136,9 @@ class TradieApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
 
+    // Initialize navigation service with router
+    NavigationService.initialize(router);
+
     return MaterialApp.router(
       title: 'Tradie',
       debugShowCheckedModeBanner: false,
@@ -135,6 +146,8 @@ class TradieApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       routerConfig: router,
+      // Add navigator key for global navigation
+      // navigatorKey: NavigationService.navigatorKey, // Not needed with GoRouter
     );
   }
 }

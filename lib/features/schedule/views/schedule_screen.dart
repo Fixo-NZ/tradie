@@ -393,7 +393,7 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                             Row(
                               children: [
                                 Text(
-                                  DateFormat('hh:mm a').format(event.startDateTime),
+                                  '${ DateFormat('hh:mm a').format(event.startDateTime)} - ${DateFormat('hh:mm a').format(event.endDateTime)}',
                                   style: TextStyle(color: Color(0xFF757575)),
                                 ),
                                 SizedBox(width: 10),

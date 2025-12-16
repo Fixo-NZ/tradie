@@ -47,10 +47,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/job-details',
-        // builder: (context, state) => const JobDetailsScreen(),
         builder: (context, state) {
-          final event = state.extra as ScheduleModel;
-          return JobDetailsScreen(eventId: event.id);
+          // Handle both ScheduleModel and int (eventId) as extra data
+          final extra = state.extra;
+          int eventId;
+          
+          if (extra is ScheduleModel) {
+            eventId = extra.id;
+          } else if (extra is int) {
+            eventId = extra;
+          } else {
+            // Fallback - try to get from query parameters
+            final idParam = state.uri.queryParameters['id'];
+            eventId = int.tryParse(idParam ?? '') ?? 0;
+          }
+          
+          return JobDetailsScreen(eventId: eventId);
         },
       ),
     ],
