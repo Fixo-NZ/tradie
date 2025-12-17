@@ -11,8 +11,8 @@ class DioClient {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        connectTimeout: const Duration(seconds: 50),
+        receiveTimeout: const Duration(seconds: 50),
         headers: {
           'Content-Type': ApiConstants.contentType,
           'Accept': ApiConstants.accept,
@@ -23,7 +23,8 @@ class DioClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _storage.read(key: 'access_token');
+          // Use tradie-specific key
+          final token = await _storage.read(key: 'tradie_access_token');
           if (token != null) {
             options.headers[ApiConstants.authorization] =
                 '${ApiConstants.bearer} $token';
@@ -32,8 +33,9 @@ class DioClient {
         },
         onError: (error, handler) async {
           if (error.response?.statusCode == 401) {
-            await _storage.delete(key: 'access_token');
-            // You can add navigation to login screen here
+            // Clear tradie tokens
+            await _storage.delete(key: 'tradie_access_token');
+            await _storage.delete(key: 'tradie_user_id');
           }
           handler.next(error);
         },
@@ -49,14 +51,15 @@ class DioClient {
   Dio get dio => _dio;
 
   Future<void> setToken(String token) async {
-    await _storage.write(key: 'access_token', value: token);
+    await _storage.write(key: 'tradie_access_token', value: token);
   }
 
   Future<void> clearToken() async {
-    await _storage.delete(key: 'access_token');
+    await _storage.delete(key: 'tradie_access_token');
+    await _storage.delete(key: 'tradie_user_id');
   }
 
   Future<String?> getToken() async {
-    return await _storage.read(key: 'access_token');
+    return await _storage.read(key: 'tradie_access_token');
   }
 }

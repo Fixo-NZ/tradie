@@ -5,9 +5,19 @@ class ApiConstants {
   static const String logoutEndpoint = '/tradie/logout';
   static const String refreshTokenEndpoint = '/tradie/refresh';
 
+
+  // Tradie Job Application Endpoints
+  static const String availableJobsEndpoint = '/tradie/jobs/available';
+  static const String myApplicationsEndpoint = '/tradie/jobs/my-applications';
+  static const String applyJobEndpoint = '/tradie/jobs'; // Will append /{id}/apply
+  static const String completeJobEndpoint = '/tradie/jobs'; // Will append /{id}/complete
+
   // Headers
   static const String contentType = 'application/json';
   static const String accept = 'application/json';
   static const String authorization = 'Authorization';
   static const String bearer = 'Bearer';
+
+
+
 }

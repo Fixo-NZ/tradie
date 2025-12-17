@@ -37,7 +37,7 @@ Map<String, dynamic> _$RegisterRequestToJson(RegisterRequest instance) =>
     };
 
 AuthResponse _$AuthResponseFromJson(Map<String, dynamic> json) => AuthResponse(
-  accessToken: json['access_token'] as String,
+  accessToken: json['token'] as String,
   tokenType: json['token_type'] as String,
   expiresIn: (json['expires_in'] as num).toInt(),
   user: TradieModel.fromJson(json['user'] as Map<String, dynamic>),
@@ -45,7 +45,7 @@ AuthResponse _$AuthResponseFromJson(Map<String, dynamic> json) => AuthResponse(
 
 Map<String, dynamic> _$AuthResponseToJson(AuthResponse instance) =>
     <String, dynamic>{
-      'access_token': instance.accessToken,
+      'token': instance.accessToken,
       'token_type': instance.tokenType,
       'expires_in': instance.expiresIn,
       'user': instance.user,

@@ -1,3 +1,5 @@
+//tradie
+
 import 'package:json_annotation/json_annotation.dart';
 import '../../../core/models/tradie_model.dart';
 
@@ -48,7 +50,7 @@ class RegisterRequest {
 
 @JsonSerializable()
 class AuthResponse {
-  @JsonKey(name: 'access_token')
+  @JsonKey(name: 'token')
   final String accessToken;
   @JsonKey(name: 'token_type')
   final String tokenType;

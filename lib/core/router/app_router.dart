@@ -1,9 +1,13 @@
+//tradie app router.dart
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/views/login_screen.dart';
 import '../../features/auth/views/register_screen.dart';
 import '../../features/auth/views/dashboard_screen.dart';
 import '../../features/auth/viewmodels/auth_viewmodel.dart';
+import '../../features/job_application/views/job_feed_screen.dart';
+import '../../features/job_application/views/my_jobs_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authViewModelProvider);
@@ -36,6 +40,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/dashboard',
         builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: '/job-feed',
+        builder: (context, state) => const JobFeedScreen(),
+      ),
+      GoRoute(
+        path: '/my-jobs',
+        builder: (context, state) => const MyJobsScreen(),
       ),
     ],
   );
