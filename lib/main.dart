@@ -6,7 +6,6 @@ import 'core/theme/app_theme.dart';
 void main() {
   runApp(const ProviderScope(child: TradieApp()));
 }
-
 class TradieApp extends ConsumerWidget {
   const TradieApp({super.key});
 

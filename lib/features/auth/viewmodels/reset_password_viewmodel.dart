@@ -15,7 +15,7 @@ class ResetPasswordState {
   final String? error;
   final ResetPasswordStep step;
   final String email;
-  final String? token;
+  final String? token; // Kept for future flexibility, but currently unused
 
   const ResetPasswordState({
     this.isLoading = false,
@@ -48,6 +48,7 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
   ResetPasswordViewModel(this._authRepository)
       : super(const ResetPasswordState());
 
+  // 1. Request OTP
   Future<void> requestOtp(String email) async {
     state = state.copyWith(isLoading: true, error: null);
 
@@ -65,6 +66,7 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
     }
   }
 
+  // 2. Verify OTP
   Future<void> verifyOtp(String otp) async {
     state = state.copyWith(isLoading: true, error: null);
 
@@ -74,33 +76,29 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
     );
 
     switch (result) {
-      case Success(data: final token):
+      case Success():
+      // UPDATED: No longer expecting a token here, just void Success.
         state = state.copyWith(
           isLoading: false,
           step: ResetPasswordStep.enterNewPassword,
-          token: token,
         );
       case Failure():
         state = state.copyWith(isLoading: false, error: result.message);
     }
   }
 
+  // 3. Set New Password
   Future<void> setNewPassword(
       String password, String passwordConfirmation) async {
 
-    // Safety check for token
-    if (state.token == null) {
-      state = state.copyWith(error: "Session expired. Please verify OTP again.");
-      return;
-    }
-
+    // UPDATED: Removed the token null check since we aren't using tokens currently.
     state = state.copyWith(isLoading: true, error: null);
 
     final result = await _authRepository.setNewPassword(
-      token: state.token!,
+      // UPDATED: Removed 'token' parameter to match Repository
       email: state.email,
-      password: password,
-      passwordConfirmation: passwordConfirmation,
+      newPassword: password,
+      confirmNewPassword: passwordConfirmation,
     );
 
     switch (result) {

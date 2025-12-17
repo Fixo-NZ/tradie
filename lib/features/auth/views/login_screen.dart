@@ -112,7 +112,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: AppDimensions.paddingLarge),
                       child: Column(
-                        // Align to center to match the ResetPassword layout
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const SizedBox(height: 10),
@@ -198,48 +197,80 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // --- Bottom Section (1/3 of screen) ---
                 Expanded(
                   flex: 1,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppDimensions.paddingLarge),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: AppDimensions.buttonHeight,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.paddingLarge),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Login Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: AppDimensions.buttonHeight,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
                             ),
-                          ),
-                          onPressed: authState.isLoading
-                              ? null
-                              : () {
-                            if (_formKey.currentState!.validate()) {
-                              authViewModel.clearError();
-                              authViewModel.login(
-                                _emailController.text.trim(),
-                                _passwordController.text,
-                              );
-                            }
-                          },
-                          child: authState.isLoading
-                              ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white),
+                            onPressed: authState.isLoading
+                                ? null
+                                : () {
+                              if (_formKey.currentState!.validate()) {
+                                authViewModel.clearError();
+                                authViewModel.login(
+                                  _emailController.text.trim(),
+                                  _passwordController.text,
+                                );
+                              }
+                            },
+                            child: authState.isLoading
+                                ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white),
+                              ),
+                            )
+                                : const Text(
+                              "Login",
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.white),
                             ),
-                          )
-                              : const Text(
-                            "Login",
-                            style: TextStyle(
-                                fontSize: 16, color: Colors.white),
                           ),
                         ),
-                      ),
+
+                        const SizedBox(height: AppDimensions.spacing16),
+
+                        // --- NEW: Create Account Link ---
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have an account? ",
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                // Navigate to Register Screen
+                                context.go('/register');
+                              },
+                              child: Text(
+                                "Create account",
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
