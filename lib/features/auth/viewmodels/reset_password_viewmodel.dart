@@ -1,21 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../repositories/auth_repository.dart';
 import '../../../core/network/api_result.dart';
-import 'auth_viewmodel.dart';
+import 'auth_viewmodel.dart'; // import for reference if needed, though not used directly here
 
-enum ResetPasswordStep {
-  enterEmail,
-  enterOtp,
-  enterNewPassword,
-  success,
-}
+enum ResetPasswordStep { enterEmail, enterOtp, enterNewPassword, success }
 
 class ResetPasswordState {
   final bool isLoading;
   final String? error;
   final ResetPasswordStep step;
   final String email;
-  final String? token; // Kept for future flexibility, but currently unused
+  final String? token;
 
   const ResetPasswordState({
     this.isLoading = false,
@@ -45,13 +40,10 @@ class ResetPasswordState {
 class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
   final AuthRepository _authRepository;
 
-  ResetPasswordViewModel(this._authRepository)
-      : super(const ResetPasswordState());
+  ResetPasswordViewModel(this._authRepository) : super(const ResetPasswordState());
 
-  // 1. Request OTP
   Future<void> requestOtp(String email) async {
     state = state.copyWith(isLoading: true, error: null);
-
     final result = await _authRepository.requestPasswordReset(email);
 
     switch (result) {
@@ -66,36 +58,33 @@ class ResetPasswordViewModel extends StateNotifier<ResetPasswordState> {
     }
   }
 
-  // 2. Verify OTP
   Future<void> verifyOtp(String otp) async {
     state = state.copyWith(isLoading: true, error: null);
-
-    final result = await _authRepository.verifyPasswordResetOtp(
-      state.email,
-      otp,
-    );
+    // FIXED: Correct method name
+    final result = await _authRepository.verifyPasswordResetOtp(state.email, otp);
 
     switch (result) {
-      case Success():
-      // UPDATED: No longer expecting a token here, just void Success.
+      case Success(data: final token):
         state = state.copyWith(
           isLoading: false,
           step: ResetPasswordStep.enterNewPassword,
+          token: token,
         );
       case Failure():
         state = state.copyWith(isLoading: false, error: result.message);
     }
   }
 
-  // 3. Set New Password
-  Future<void> setNewPassword(
-      String password, String passwordConfirmation) async {
-
-    // UPDATED: Removed the token null check since we aren't using tokens currently.
+  Future<void> setNewPassword(String password, String passwordConfirmation) async {
+    if (state.token == null) {
+      state = state.copyWith(error: "Session expired. Please verify OTP again.");
+      return;
+    }
     state = state.copyWith(isLoading: true, error: null);
 
-    final result = await _authRepository.setNewPassword(
-      // UPDATED: Removed 'token' parameter to match Repository
+    // FIXED: Correct method name and passing token
+    final result = await _authRepository.resetPassword(
+      token: state.token!,
       email: state.email,
       newPassword: password,
       confirmNewPassword: passwordConfirmation,

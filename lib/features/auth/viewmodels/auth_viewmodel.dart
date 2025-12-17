@@ -4,25 +4,18 @@ import '../models/auth_models.dart';
 import '../repositories/auth_repository.dart';
 import '../../../core/network/api_result.dart';
 
-// --- 1. DEFINE THE APP STATUS ---
-enum AppStatus {
-  initializing,
-  unauthenticated,
-  authenticated,
-}
+enum AppStatus { initializing, unauthenticated, authenticated }
 
-// --- 2. UPDATE AuthState ---
 class AuthState {
   final AppStatus status;
   final bool isLoading;
   final TradieModel? user;
   final String? error;
   final Map<String, List<String>>? fieldErrors;
-
-  // --- ADDED FIELDS FOR REGISTRATION & RESET ---
   final bool isRegistered;
   final String? pendingEmail;
   final bool isPasswordResetRequested;
+  final String? token; // Added token to store OTP result
 
   const AuthState({
     this.status = AppStatus.initializing,
@@ -30,10 +23,10 @@ class AuthState {
     this.user,
     this.error,
     this.fieldErrors,
-    // Initialize new fields
     this.isRegistered = false,
     this.pendingEmail,
     this.isPasswordResetRequested = false,
+    this.token,
   });
 
   AuthState copyWith({
@@ -42,10 +35,10 @@ class AuthState {
     TradieModel? user,
     String? error,
     Map<String, List<String>>? fieldErrors,
-    // Add new fields to copyWith
     bool? isRegistered,
     String? pendingEmail,
     bool? isPasswordResetRequested,
+    String? token,
   }) {
     return AuthState(
       status: status ?? this.status,
@@ -56,11 +49,11 @@ class AuthState {
       isRegistered: isRegistered ?? this.isRegistered,
       pendingEmail: pendingEmail ?? this.pendingEmail,
       isPasswordResetRequested: isPasswordResetRequested ?? this.isPasswordResetRequested,
+      token: token ?? this.token,
     );
   }
 }
 
-// --- 3. UPDATE AuthViewModel ---
 class AuthViewModel extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
 
@@ -68,14 +61,16 @@ class AuthViewModel extends StateNotifier<AuthState> {
     _checkAuthStatus();
   }
 
-  // --- INITIAL CHECK ---
+  // FIXED: Avoids List<Future> type error
   Future<void> _checkAuthStatus() async {
-    final results = await Future.wait([
-      _authRepository.isLoggedIn(),
-      Future.delayed(const Duration(seconds: 2)),
-    ]);
+    // Start the delay
+    final delayFuture = Future.delayed(const Duration(seconds: 2));
+    // Start the check
+    final loginCheckFuture = _authRepository.isLoggedIn();
 
-    final isLoggedIn = results[0] as bool;
+    // Wait for both
+    await delayFuture;
+    final isLoggedIn = await loginCheckFuture;
 
     if (isLoggedIn) {
       state = state.copyWith(status: AppStatus.authenticated);
@@ -84,11 +79,9 @@ class AuthViewModel extends StateNotifier<AuthState> {
     }
   }
 
-  // --- LOGIN ---
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null, fieldErrors: null);
-    final request = LoginRequest(email: email, password: password);
-    final result = await _authRepository.login(request);
+    final result = await _authRepository.login(LoginRequest(email: email, password: password));
 
     switch (result) {
       case Success<AuthResponse>():
@@ -108,7 +101,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
     }
   }
 
-  // --- REGISTER ---
   Future<bool> register({
     required String firstName,
     required String lastName,
@@ -132,7 +124,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
 
     switch (result) {
       case Success<AuthResponse>():
-      // We set isRegistered to true so the UI can navigate to Email Verification.
         state = state.copyWith(
           isLoading: false,
           isRegistered: true,
@@ -149,14 +140,14 @@ class AuthViewModel extends StateNotifier<AuthState> {
     }
   }
 
-  // --- REGISTRATION HELPER (Fixes error in register_screen.dart) ---
   void acknowledgeRegistrationHandled() {
     state = state.copyWith(isRegistered: false);
   }
 
   // --- PASSWORD RESET ---
+
   Future<bool> requestPasswordReset(String email) async {
-    state = state.copyWith(isLoading: true, error: null, fieldErrors: null);
+    state = state.copyWith(isLoading: true, error: null);
     final result = await _authRepository.requestPasswordReset(email);
 
     switch (result) {
@@ -181,35 +172,33 @@ class AuthViewModel extends StateNotifier<AuthState> {
     state = state.copyWith(isPasswordResetRequested: false);
   }
 
-  // --- VERIFY OTP (Updated to use correct Repository name) ---
   Future<bool> verifyOtp({required String email, required String otp}) async {
     state = state.copyWith(isLoading: true, error: null);
-    // Updated call to verifyPasswordResetOtp
     final result = await _authRepository.verifyPasswordResetOtp(email, otp);
 
     switch (result) {
-      case Success():
-        state = state.copyWith(isLoading: false);
+      case Success(data: final token):
+        state = state.copyWith(isLoading: false, token: token);
         return true;
       case Failure():
-        state = state.copyWith(
-          isLoading: false,
-          error: result.message,
-          fieldErrors: result.errors,
-        );
+        state = state.copyWith(isLoading: false, error: result.message, fieldErrors: result.errors);
         return false;
     }
   }
 
-  // --- RESET PASSWORD (Updated to use correct Repository name) ---
   Future<bool> resetPassword({
     required String email,
     required String newPassword,
     required String confirmNewPassword,
   }) async {
+    if (state.token == null) {
+      state = state.copyWith(error: "Session expired.");
+      return false;
+    }
+
     state = state.copyWith(isLoading: true, error: null);
-    // Updated call to setNewPassword
-    final result = await _authRepository.setNewPassword(
+    final result = await _authRepository.resetPassword(
+      token: state.token!,
       email: email,
       newPassword: newPassword,
       confirmNewPassword: confirmNewPassword,
@@ -220,16 +209,11 @@ class AuthViewModel extends StateNotifier<AuthState> {
         state = state.copyWith(isLoading: false);
         return true;
       case Failure():
-        state = state.copyWith(
-          isLoading: false,
-          error: result.message,
-          fieldErrors: result.errors,
-        );
+        state = state.copyWith(isLoading: false, error: result.message, fieldErrors: result.errors);
         return false;
     }
   }
 
-  // --- LOGOUT ---
   Future<void> logout() async {
     state = state.copyWith(isLoading: true);
     await _authRepository.logout();
@@ -241,12 +225,8 @@ class AuthViewModel extends StateNotifier<AuthState> {
   }
 }
 
-// Providers
-final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  return AuthRepository();
-});
-
+final authRepositoryProvider = Provider<AuthRepository>((ref) => AuthRepository());
 final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  return AuthViewModel(authRepository);
+  final repo = ref.watch(authRepositoryProvider);
+  return AuthViewModel(repo);
 });
