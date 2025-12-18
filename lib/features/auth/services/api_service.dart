@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Base URL for all API requests
+<<<<<<< Updated upstream
   //static const String baseUrl = "http://192.168.4.111:8000/api/tradie";
   //  static const String baseUrl = "http://10.0.2.2:8000/api/tradie";   //For testing - Kath
   static const String baseUrl = "http://192.168.100.53:8000/api/tradie"; //For testing - erika
@@ -11,6 +12,15 @@ class ApiService {
 
   // static const String token =
       //  "11|imr6an8C0medfaHg7KYrnRjI5Y3nIBCydSu0E8QAc00bde93"; //For testing - Kath 
+=======
+  //static const String baseUrl = "http://192.168.4.111:8000/api";
+  //  static const String baseUrl = "http://10.0.2.2:8000/api";   //For testing - Kath
+  static const String baseUrl = "http://192.168.100.53:8000/api"; //For testing - erika
+  // static const String baseUrl = "http://192.168.5.7:8000/api"; //For testing - erika school
+
+  // static const String token =
+  //      "11|imr6an8C0medfaHg7KYrnRjI5Y3nIBCydSu0E8QAc00bde93"; //For testing - Kath 
+>>>>>>> Stashed changes
 
   // Temporary token for testing (normally stored securely)
   static const String token =
