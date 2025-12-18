@@ -17,8 +17,8 @@ Map<String, dynamic> _$LoginRequestToJson(LoginRequest instance) =>
 RegisterRequest _$RegisterRequestFromJson(Map<String, dynamic> json) =>
     RegisterRequest(
       firstName: json['first_name'] as String,
-      middleName: json['middle_name'] as String?,
       lastName: json['last_name'] as String,
+      middleName: json['middle_name'] as String?,
       email: json['email'] as String,
       password: json['password'] as String,
       passwordConfirmation: json['password_confirmation'] as String,
@@ -28,8 +28,8 @@ RegisterRequest _$RegisterRequestFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$RegisterRequestToJson(RegisterRequest instance) =>
     <String, dynamic>{
       'first_name': instance.firstName,
-      'middle_name': instance.middleName,
       'last_name': instance.lastName,
+      'middle_name': _middleNameToJson(instance.middleName),
       'email': instance.email,
       'password': instance.password,
       'password_confirmation': instance.passwordConfirmation,
@@ -37,22 +37,27 @@ Map<String, dynamic> _$RegisterRequestToJson(RegisterRequest instance) =>
     };
 
 AuthResponse _$AuthResponseFromJson(Map<String, dynamic> json) => AuthResponse(
-  accessToken: json['access_token'] as String,
-  tokenType: json['token_type'] as String,
-  expiresIn: (json['expires_in'] as num).toInt(),
-  user: TradieModel.fromJson(json['user'] as Map<String, dynamic>),
+  success: json['success'] as bool,
+  data: AuthDataModel.fromJson(json['data'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$AuthResponseToJson(AuthResponse instance) =>
-    <String, dynamic>{
-      'access_token': instance.accessToken,
-      'token_type': instance.tokenType,
-      'expires_in': instance.expiresIn,
-      'user': instance.user,
-    };
+    <String, dynamic>{'success': instance.success, 'data': instance.data};
+
+ErrorPayload _$ErrorPayloadFromJson(Map<String, dynamic> json) => ErrorPayload(
+  code: json['code'] as String?,
+  message: json['message'] as String?,
+);
+
+Map<String, dynamic> _$ErrorPayloadToJson(ErrorPayload instance) =>
+    <String, dynamic>{'code': instance.code, 'message': instance.message};
 
 ApiError _$ApiErrorFromJson(Map<String, dynamic> json) => ApiError(
-  message: json['message'] as String,
+  success: json['success'] as bool?,
+  error:
+      json['error'] == null
+          ? null
+          : ErrorPayload.fromJson(json['error'] as Map<String, dynamic>),
   errors: (json['errors'] as Map<String, dynamic>?)?.map(
     (k, e) =>
         MapEntry(k, (e as List<dynamic>).map((e) => e as String).toList()),
@@ -60,6 +65,7 @@ ApiError _$ApiErrorFromJson(Map<String, dynamic> json) => ApiError(
 );
 
 Map<String, dynamic> _$ApiErrorToJson(ApiError instance) => <String, dynamic>{
-  'message': instance.message,
+  'success': instance.success,
+  'error': instance.error,
   'errors': instance.errors,
 };

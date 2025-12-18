@@ -19,8 +19,11 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify that we're on the login screen
-    expect(find.text('Tradie'), findsOneWidget);
-    expect(find.text('Connect with homeowners'), findsOneWidget);
+    // We updated these lines to match your new UI
+    expect(find.text('FIXO'), findsOneWidget);
+    expect(find.text('Enter your credentials to get started.'), findsOneWidget);
+
+    // This one finds the "Login" button, which exists in both designs
     expect(find.text('Login'), findsOneWidget);
   });
 }
