@@ -72,11 +72,16 @@ class AuthViewModel extends StateNotifier<AuthState> {
     await delayFuture;
     final isLoggedIn = await loginCheckFuture;
 
-    if (isLoggedIn) {
-      state = state.copyWith(status: AppStatus.authenticated);
-    } else {
-      state = state.copyWith(status: AppStatus.unauthenticated);
-    }
+    // DO NOT REMOVE: Force login screen first (ignore stored token)
+    // To restore normal behavior, uncomment the if/else below and remove the line after this comment
+    state = state.copyWith(status: AppStatus.unauthenticated);
+    
+    // Original behavior - uncomment to restore:
+    // if (isLoggedIn) {
+    //   state = state.copyWith(status: AppStatus.authenticated);
+    // } else {
+    //   state = state.copyWith(status: AppStatus.unauthenticated);
+    // }
   }
 
   Future<bool> login(String email, String password) async {

@@ -103,8 +103,7 @@ class _DoneScreenState extends ConsumerState<DoneScreen> {
                       backgroundColor: AppColors.surfaceVariant,
                       backgroundImage: (cacheBusted != null)
                           ? NetworkImage(cacheBusted)
-                          : const AssetImage('assets/images/default_avatar.png')
-                              as ImageProvider,
+                          : null,
                       child: cacheBusted == null
                           ? const Icon(Icons.person,
                               size: 50, color: Colors.white70)

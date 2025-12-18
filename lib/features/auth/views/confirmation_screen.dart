@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/widgets/navigation_widgets.dart'; 
 
 class ConfirmationScreen extends StatelessWidget {
-  const ConfirmationScreen({Key? key}) : super(key: key);
+  const ConfirmationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -73,11 +74,11 @@ class ConfirmationScreen extends StatelessWidget {
         ],
       ),
 
-      //  Floating Continue button at the bottom right
+      //  Floating Continue button at the bottom right - navigates to dashboard
       floatingActionButton: ContinueFloatingButton(
         onPressed: () {
-        
-          Navigator.of(context).popUntil((route) => route.isFirst);
+          // Navigate to dashboard and clear the navigation stack
+          context.go('/dashboard');
         },
         backgroundColor: AppColors.tradieBlue,
       ),

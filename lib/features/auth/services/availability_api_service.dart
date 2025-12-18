@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../core/constants/api_constants.dart';
 import 'api_service.dart';
 
 class AvailabilityApiService extends ApiService {
@@ -9,7 +10,8 @@ class AvailabilityApiService extends ApiService {
     String? toTime,   
     required bool emergencyAvailable,
   }) async {
-    final endpoint = '/profile-setup/availability'; 
+    // Backend route: /api/tradie/profile-setup/availability
+    final endpoint = ApiConstants.availabilityEndpoint; 
 
     final body = {
       if (days.isNotEmpty)

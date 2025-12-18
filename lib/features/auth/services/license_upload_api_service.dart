@@ -3,12 +3,16 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import '../../../core/constants/api_constants.dart';
-import 'api_service.dart';
+import '../../../core/network/dio_client.dart';
 
 class LicenseUploadApiService {
-  // Use shared ApiService baseUrl and token so environment is consistent
-  String get _baseUrl => ApiService.baseUrl;
-  String get _token => ApiService.token;
+  // Use shared baseUrl from ApiConstants
+  String get _baseUrl => ApiConstants.baseUrl;
+  
+  // DO NOT REMOVE: Get token from secure storage (set during login)
+  Future<String> _getToken() async {
+    return await DioClient.instance.getToken() ?? '';
+  }
 
   /// Upload a single license or ID file
   Future<Map<String, dynamic>> uploadLicenseFile({
@@ -19,17 +23,20 @@ class LicenseUploadApiService {
       final uri = Uri.parse('$_baseUrl${ApiConstants.licenseUploadEndpoint}');
       final request = http.MultipartRequest('POST', uri);
 
+      // DO NOT REMOVE: Get token from secure storage
+      final token = await _getToken();
+      
       // Log request details
-      final tokenMasked = _token.length > 10 ? '${_token.substring(0, 10)}...' : _token;
+      final tokenMasked = token.length > 10 ? '${token.substring(0, 10)}...' : token;
       final fileSize = await file.length();
       print('License Upload:');
       print('URL: $uri');
-      print('File: ${file.path} (${fileSize} bytes)');
+      print('File: ${file.path} ($fileSize bytes)');
       print('Type: $fileType');
       print('Token: $tokenMasked');
 
       request.headers.addAll({
-        'Authorization': 'Bearer ${_token}',
+        'Authorization': 'Bearer $token',
         'Accept': 'application/json',
       });
 

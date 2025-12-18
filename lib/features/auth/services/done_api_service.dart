@@ -1,4 +1,5 @@
 import 'package:tradie/features/auth/services/api_service.dart';
+import '../../../core/constants/api_constants.dart';
 
 class DoneApiService {
   final ApiService _apiService = ApiService();
@@ -6,7 +7,8 @@ class DoneApiService {
   // Fetch profile data (handles nested Laravel response)
   Future<Map<String, dynamic>> fetchProfile() async {
     try {
-      final response = await _apiService.get('/profile-setup/get-profile');
+      // Backend route: /api/tradie/profile-setup/get-profile
+      final response = await _apiService.get(ApiConstants.getProfileEndpoint);
 
       if (response['success'] == true && response['data'] != null) {
         // Laravel sometimes returns { "success": true, "data": { "data": {...}} }
@@ -27,7 +29,8 @@ class DoneApiService {
   // Fetch skills data
   Future<List<dynamic>> fetchSkills() async {
     try {
-      final response = await _apiService.get('/profile-setup/get-skills');
+      // Backend route: /api/tradie/profile-setup/get-skills
+      final response = await _apiService.get(ApiConstants.getSkillsEndpoint);
 
       if (response['success'] == true &&
           response['data'] != null &&

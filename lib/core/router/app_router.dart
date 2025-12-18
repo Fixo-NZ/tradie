@@ -1,12 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/auth/views/register_screen.dart';
+
+// --- Auth Views ---
 import '../../features/auth/views/login_screen.dart';
-import '../../features/auth/views/dashboard_screen.dart';
+import '../../features/auth/views/register_screen.dart';
 import '../../features/auth/views/reset_password_screen.dart';
-import '../../features/auth/views/profile_setup_screen.dart';
-import '../../features/auth/viewmodels/auth_viewmodel.dart';
 import '../../features/auth/views/splash_screen.dart';
+import '../../features/auth/viewmodels/auth_viewmodel.dart';
+
+// Profile Setup
+import '../../features/auth/views/profile_setup_screen.dart';
+
+// --- Dashboard Views ---
+// FIX: We changed the import from 'auth/views' to 'dashboard/views'
+import '../../features/auth/views/dashboard_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // --- 1. Watch the ViewModel and get the new status ---
@@ -16,42 +23,42 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/', // Start at splash screen
 
-    // --- 2. This is the new, more powerful redirect logic ---
+    // --- 2. Redirect Logic ---
+    // Flow: Splash -> Login -> Profile Setup
     redirect: (context, state) {
       final location = state.matchedLocation;
 
       // If the app is still initializing, stay on the splash screen
       if (appStatus == AppStatus.initializing) {
-        // Stay on splash, or go to splash if we are anywhere else
         return (location == '/') ? null : '/';
       }
 
-      // If the user is unauthenticated
+      // If the user is unauthenticated, redirect to login
       if (appStatus == AppStatus.unauthenticated) {
-        // If they are on the login, register, or reset password page, let them be
+        // Allow access to login, register, and reset password
         if (location == '/login' ||
             location == '/register' ||
             location == '/reset-password') {
           return null;
         }
-        // If they try to access protected routes (like profile-setup), redirect to login
+        // Redirect everything else (including splash) to login
         return '/login';
       }
 
-      // If the user is authenticated
+      // If the user is authenticated, redirect to profile setup
       if (appStatus == AppStatus.authenticated) {
-        // If they are on the splash page, send to login (user must always log in first)
-        if (location == '/') {
-          return '/login';
+        // If on splash, login, register, or reset-password -> go to profile setup
+        if (location == '/' ||
+            location == '/login' ||
+            location == '/register' ||
+            location == '/reset-password') {
+          return '/profile-setup';
         }
-        // Allow authenticated users to stay on login/register pages
-        // Navigation to profile-setup will be handled by login screen after successful login
       }
 
-      // No other rule matched, so stay where you are
+      // No other rule matched, stay where you are
       return null;
     },
-    // --- End of new redirect logic ---
 
     routes: [
       GoRoute(
@@ -67,12 +74,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
-        path: '/profile-setup',
-        builder: (context, state) => const ProfileSetupScreen(),
+        path: '/dashboard',
+        builder: (context, state) => const DashboardScreen(),
       ),
       GoRoute(
-        path: '/dashboard',
-        builder: (context, state) => const DashboardScreen(), // Replace with your actual DashboardScreen widget
+        path: '/profile-setup',
+        builder: (context, state) => const ProfileSetupScreen(),
       ),
       GoRoute(
         path: '/reset-password',

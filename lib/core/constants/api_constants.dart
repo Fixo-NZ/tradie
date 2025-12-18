@@ -24,27 +24,31 @@ class ApiConstants {
   //static const String baseUrl = 'http://192.168.100.250:8000/api';
 
   // Auth Endpoints
-  //static const String loginEndpoint = '/login';
-  //static const String registerEndpoint = '/register';
-  //static const String logoutEndpoint = '/logout';
-  static const String refreshTokenEndpoint = '/refresh';   // Refresh token API
-  static const String uploadAvatarEndpoint = '/upload-avatar';
-
-  // Profile Setup Endpoints
-  static const String basicInfoEndpoint = '/tradie/profile-setup/basic-info';
-  static const String skillsEndpoint = '/tradie/profile-setup/skills';
-  static const String licenseUploadEndpoint = '/tradie/profile-setup/licenses';
-    //static const String baseUrl = 'http://10.0.2.2:8000/api';
-
-  // Auth
+  static const String refreshTokenEndpoint = '/refresh';
   static const String loginEndpoint = '/tradie/login';
   static const String registerEndpoint = '/tradie/register';
   static const String logoutEndpoint = '/tradie/logout';
+  static const String meEndpoint = '/tradie/me';
 
   // Password Reset
   static const String requestPasswordResetEndpoint = '/tradie/reset-password-request';
+  static const String requestOtpEndpoint = '/tradie/request-otp';
   static const String verifyPasswordResetOtpEndpoint = '/tradie/verify-otp';
   static const String setNewPasswordEndpoint = '/tradie/reset-password';
+
+  // Email Verification
+  static const String resendEmailVerificationEndpoint = '/tradie/auth/resend-email-verification';
+
+  // Profile Setup Endpoints - All under /tradie/profile-setup/
+  static const String uploadAvatarEndpoint = '/tradie/profile-setup/avatar';
+  static const String basicInfoEndpoint = '/tradie/profile-setup/basic-info';
+  static const String skillsEndpoint = '/tradie/profile-setup/skills';
+  static const String availabilityEndpoint = '/tradie/profile-setup/availability';
+  static const String portfolioEndpoint = '/tradie/profile-setup/portfolio';
+  static const String completeSetupEndpoint = '/tradie/profile-setup/complete';
+  static const String getProfileEndpoint = '/tradie/profile-setup/get-profile';
+  static const String getSkillsEndpoint = '/tradie/profile-setup/get-skills';
+  static const String licenseUploadEndpoint = '/tradie/profile-setup/licenses';
 
   // Headers
   static const String contentType = 'application/json';

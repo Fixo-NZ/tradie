@@ -175,6 +175,7 @@ class ProfileSetupViewModel extends StateNotifier<ProfileSetupState> {
   Future<bool> uploadProfileImage(File image) async {
     try {
       state = state.copyWith(isLoading: true);
+      print('📸 Starting avatar upload for file: ${image.path}');
 
       final response = await _service.uploadAvatar(image);
       final success = response.statusCode == 200 || response.statusCode == 201;
@@ -182,18 +183,20 @@ class ProfileSetupViewModel extends StateNotifier<ProfileSetupState> {
       state = state.copyWith(isLoading: false);
 
       if (success) {
-        print('Image uploaded successfully!');
+        print('✅ Avatar uploaded successfully!');
+        print('📸 Response: ${response.data}');
 
         // Fetch latest profile from backend
         final profileResponse = await _service.getProfile();
         if (profileResponse['success'] == true) {
           state = state.copyWith(profile: profileResponse['data']);
-          print('Profile updated after avatar upload.');
+          print('✅ Profile updated after avatar upload.');
         } else {
-          print('Failed to fetch updated profile data.');
+          print('⚠️ Failed to fetch updated profile data.');
         }
       } else {
-        print('Image upload failed: ${response.statusCode}');
+        print('❌ Avatar upload failed: ${response.statusCode}');
+        print('❌ Response body: ${response.data}');
         state = state.copyWith(
           errorMessage: 'Image upload failed: ${response.statusCode}');
         }

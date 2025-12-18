@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/network/dio_client.dart';
 import 'api_service.dart';
-import 'dart:convert';
 
 class ProfileApiService extends ApiService {
-  // Submit Basic Info (now supports avatar upload too)
+  // Submit Basic Info (avatar is uploaded separately via uploadAvatar)
   Future<Map<String, dynamic>> submitBasicInfo({
     required String firstName,
     required String lastName,
@@ -14,12 +14,14 @@ class ProfileApiService extends ApiService {
     required String phone,
     required String businessName,
     String? professionalBio,
-    File? avatarImage, 
+    File? avatarImage, // Kept for compatibility but not sent here
   }) async {
     try {
       final dio = Dio();
-      final usedToken = ApiService.token;
+      // DO NOT REMOVE: Get token from secure storage (set during login)
+      final usedToken = await DioClient.instance.getToken() ?? '';
 
+      // DO NOT include avatar here - it's uploaded via separate /avatar endpoint
       final formData = FormData.fromMap({
         "first_name": firstName,
         "last_name": lastName,
@@ -28,18 +30,12 @@ class ProfileApiService extends ApiService {
         "business_name": businessName,
         if (professionalBio != null && professionalBio.isNotEmpty)
           "professional_bio": professionalBio,
-        if (avatarImage != null)
-          "avatar": await MultipartFile.fromFile(
-            avatarImage.path,
-            filename: avatarImage.path.split(Platform.pathSeparator).last,
-            contentType: MediaType.parse("image/jpeg"),
-          ),
       });
 
       // Allow Dio to return non-2xx responses instead of throwing so we can
       // inspect server error bodies (useful for debugging 500s).
       final response = await dio.post(
-        '${ApiService.baseUrl}/profile-setup/basic-info',
+        '${ApiConstants.baseUrl}${ApiConstants.basicInfoEndpoint}',
         data: formData,
         options: Options(
           headers: {
@@ -92,8 +88,9 @@ class ProfileApiService extends ApiService {
       ),
     });
 
-    final usedToken =
-        (token != null && token.isNotEmpty) ? token : ApiService.token;
+    // DO NOT REMOVE: Get token from secure storage (set during login)
+    final storedToken = await DioClient.instance.getToken() ?? '';
+    final usedToken = (token != null && token.isNotEmpty) ? token : storedToken;
 
     final options = Options(
       headers: {
@@ -101,14 +98,17 @@ class ProfileApiService extends ApiService {
         'Accept': 'application/json',
       },
       contentType: 'multipart/form-data',
+      validateStatus: (status) => true, // Allow all status codes for debugging
     );
 
-    // Backend defines upload-avatar at the top-level tradie prefix (not under profile-setup)
-    final url = '${ApiService.baseUrl}${ApiConstants.uploadAvatarEndpoint}';
+    // Backend route: /tradie/profile-setup/avatar
+    final url = '${ApiConstants.baseUrl}${ApiConstants.uploadAvatarEndpoint}';
     print('Uploading avatar to URL: $url');
+    print('Token used: ${usedToken.length > 10 ? '${usedToken.substring(0, 10)}...' : usedToken}');
 
     final response = await dio.post(url, data: formData, options: options);
-    print("Upload response: ${response.data}");
+    print("Upload response status: ${response.statusCode}");
+    print("Upload response body: ${response.data}");
     return response;
   }
 
@@ -116,8 +116,9 @@ class ProfileApiService extends ApiService {
   Future<Map<String, dynamic>> getProfile({String? token}) async {
     try {
       final dio = Dio();
-      final usedToken =
-          (token != null && token.isNotEmpty) ? token : ApiService.token;
+      // DO NOT REMOVE: Get token from secure storage (set during login)
+      final storedToken = await DioClient.instance.getToken() ?? '';
+      final usedToken = (token != null && token.isNotEmpty) ? token : storedToken;
 
       final options = Options(
         headers: {
@@ -126,8 +127,8 @@ class ProfileApiService extends ApiService {
         },
       );
 
-      // Adjust this URL if your Laravel route is different
-      final url = '${ApiService.baseUrl}/profile-setup/get-profile';
+      // Backend route: /tradie/profile-setup/get-profile
+      final url = '${ApiConstants.baseUrl}${ApiConstants.getProfileEndpoint}';
       print('Fetching profile from URL: $url');
 
       final response = await dio.get(url, options: options);

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../core/constants/api_constants.dart';
 import 'api_service.dart';
 
 class SkillsApiService extends ApiService {
@@ -10,7 +11,7 @@ class SkillsApiService extends ApiService {
   }) async {
 
     // Ensure skills are integers (backend safety)
-    final sanitizedSkills = skills.map((e) => e is int ? e : int.parse(e.toString())).toList();
+    final sanitizedSkills = skills.map((e) => int.parse(e.toString())).toList();
 
     // Ensure location contains correct lat/lng for OSM
     final sanitizedLocation = {
@@ -30,8 +31,8 @@ class SkillsApiService extends ApiService {
     };
 
     try {
-      // 🌐 Send POST request to backend
-      final response = await post('/profile-setup/skills', body);
+      // Send POST request to backend - route: /api/tradie/profile-setup/skills
+      final response = await post(ApiConstants.skillsEndpoint, body);
 
       final data = jsonDecode(response.body);
 

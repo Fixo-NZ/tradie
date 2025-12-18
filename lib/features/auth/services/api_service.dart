@@ -1,25 +1,29 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../../../core/network/dio_client.dart';
 
 class ApiService {
   // Base URL for all API requests
+  // DO NOT REMOVE: Keep these URLs for switching between local and public servers
   //static const String baseUrl = "http://192.168.4.111:8000/api";
-   static const String baseUrl = "http://10.0.2.2:8000/api";   //For testing - Kath
+  static const String baseUrl = "http://10.0.2.2:8000/api";   //For testing - Kath
   //static const String baseUrl = "http://192.168.100.53:8000/api"; //For testing - erika
   // static const String baseUrl = "http://192.168.5.7:8000/api"; //For testing - erika school
 
-  static const String token =
-       "11|imr6an8C0medfaHg7KYrnRjI5Y3nIBCydSu0E8QAc00bde93"; //For testing - Kath 
+  // DO NOT REMOVE: Hardcoded token kept for reference/fallback
+  // static const String token = "11|imr6an8C0medfaHg7KYrnRjI5Y3nIBCydSu0E8QAc00bde93"; //For testing - Kath 
+  // static const String token = "6|45dKRUfQ1OLscEVH4Th3bZiW2m3l0YPN3qTh0aiZ59e3c337"; //For testing - erika
 
-  // Temporary token for testing (normally stored securely)
-  //static const String token =
-  //    "6|45dKRUfQ1OLscEVH4Th3bZiW2m3l0YPN3qTh0aiZ59e3c337"; //For testing - erika
+  // DO NOT REMOVE: Get token from secure storage (set during login)
+  Future<String> _getToken() async {
+    return await DioClient.instance.getToken() ?? '';
+  }
 
   // Generic GET
   Future<Map<String, dynamic>> get(String endpoint) async {
     final uri = Uri.parse('$baseUrl$endpoint');
-    final headers = _headers();
+    final headers = await _headers();
     _logOutgoingRequest('GET', uri, headers);
 
     final response = await http.get(
@@ -34,7 +38,7 @@ class ApiService {
   // Generic POST (for JSON body)
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final uri = Uri.parse('$baseUrl$endpoint');
-    final headers = _headers();
+    final headers = await _headers();
     _logOutgoingRequest('POST', uri, headers, body: body);
 
     final response = await http.post(
@@ -47,6 +51,7 @@ class ApiService {
     return response;
   }
 
+
   // Generic Multipart POST (for uploading images/files)
   Future<Map<String, dynamic>> multipartPost({
     required String endpoint,
@@ -56,6 +61,9 @@ class ApiService {
   }) async {
     final uri = Uri.parse('$baseUrl$endpoint');
     final request = http.MultipartRequest('POST', uri);
+
+    // DO NOT REMOVE: Get token from secure storage
+    final token = await _getToken();
 
     request.headers.addAll({
       'Authorization': 'Bearer $token',
@@ -85,12 +93,15 @@ class ApiService {
     };
   }
 
-  // Common headers
-  Map<String, String> _headers() => {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
+  // Common headers - DO NOT REMOVE: Uses dynamic token from secure storage
+  Future<Map<String, String>> _headers() async {
+    final token = await _getToken();
+    return {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+  }
 
   // Mask token for logs (show first 6 chars only)
   String _maskToken(String? t) {
