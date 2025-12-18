@@ -11,7 +11,6 @@ const bool kLaunchProfileSetupDirectly = true;
 void main() {
  runApp(const ProviderScope(child: TradieApp()));
 }
-
 class TradieApp extends ConsumerWidget {
  const TradieApp({super.key});
 

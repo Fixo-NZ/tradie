@@ -1,4 +1,4 @@
-# Project Structure
+    # Project Structure
 
 This document outlines the improved file structure for the Tradie Flutter app, designed for scalability and maintainability.
 
