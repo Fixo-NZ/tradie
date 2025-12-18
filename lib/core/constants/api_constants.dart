@@ -1,5 +1,6 @@
 class ApiConstants {
   static const String baseUrl = 'http://10.0.2.2:8000/api';
+  //static const String baseUrl = 'fixo-apdkb5f3f0frdcgt.southeastasia-01.azurewebsites.net';
 
   // Auth
   static const String loginEndpoint = '/tradie/login';
