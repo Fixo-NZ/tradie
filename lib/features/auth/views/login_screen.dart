@@ -47,7 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     ref.listen<AuthState>(authViewModelProvider, (previous, next) {
       if (next.status == AppStatus.authenticated) {
-        context.go('/dashboard');
+        context.go('/profile-setup');
       }
     });
 

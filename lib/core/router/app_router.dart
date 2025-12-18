@@ -4,6 +4,7 @@ import '../../features/auth/views/register_screen.dart';
 import '../../features/auth/views/login_screen.dart';
 import '../../features/auth/views/dashboard_screen.dart';
 import '../../features/auth/views/reset_password_screen.dart';
+import '../../features/auth/views/profile_setup_screen.dart';
 import '../../features/auth/viewmodels/auth_viewmodel.dart';
 import '../../features/auth/views/splash_screen.dart';
 
@@ -33,16 +34,18 @@ final routerProvider = Provider<GoRouter>((ref) {
             location == '/reset-password') {
           return null;
         }
-        // If they are anywhere else, redirect to login
+        // If they try to access protected routes (like profile-setup), redirect to login
         return '/login';
       }
 
       // If the user is authenticated
       if (appStatus == AppStatus.authenticated) {
-        // If they are on the splash or login/register pages, send to dashboard
-        if (location == '/' || location == '/login' || location == '/register') {
-          return '/dashboard';
+        // If they are on the splash page, send to login (user must always log in first)
+        if (location == '/') {
+          return '/login';
         }
+        // Allow authenticated users to stay on login/register pages
+        // Navigation to profile-setup will be handled by login screen after successful login
       }
 
       // No other rule matched, so stay where you are
@@ -62,6 +65,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/profile-setup',
+        builder: (context, state) => const ProfileSetupScreen(),
       ),
       GoRoute(
         path: '/dashboard',
